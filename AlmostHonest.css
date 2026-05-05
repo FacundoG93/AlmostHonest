@@ -1,0 +1,726 @@
+@import url('https://fonts.googleapis.com/css2?family=UnifrakturMaguntia&family=IM+Fell+English:ital@0;1&family=Special+Elite&family=Cinzel+Decorative:wght@400;700&family=GFS+Didot&family=Libre+Baskerville:ital@0;1&display=swap');
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+html {
+    font-size: 16px; /* Set base font size */
+}
+
+#app {
+    background: #1a0a0a;
+    min-height: 100vh;
+    font-family: 'Special Elite', monospace;
+    display: flex;
+    flex-direction: column;
+    position: relative;
+}
+
+#app::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background: 
+        radial-gradient(ellipse at 20% 20%, rgba(139,0,0,0.15) 0%, transparent 50%),
+        radial-gradient(ellipse at 80% 80%, rgba(90,15,46,0.2) 0%, transparent 50%);
+}
+
+/*---------------------------TOOLBAR---------------------------*/
+.toolbar {
+    position: sticky;
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    padding: 0.5rem 0.75rem;
+    top: 0;
+    gap: 0.375rem;
+    border-bottom: 0.0625rem solid #5a0f2e;
+    background: linear-gradient(180deg, #2B0000 0%, #1a0a0a 100%);
+    z-index: 100;
+}
+
+.toolbar-section {
+    display: flex;
+    align-items: center;
+    padding: 0 0.5rem;
+    gap: 0.25rem;
+    border-right: 0.0625rem solid rgba(90,15,46,0.5);
+}
+
+.toolbar-section:last-child { 
+    border-right: none; 
+}
+
+.tb-label {
+    margin-right: 0.125rem;
+    font-size: 0.5625rem;
+    letter-spacing: 0.0625rem;
+    text-transform: uppercase;
+    font-family: 'Special Elite', monospace;
+    color: #c9a9a6;
+}
+
+.tb-btn {
+    padding: 0.25rem 0.625rem;
+    white-space: nowrap;
+    font-size: 0.6875rem;
+    border: 0.0625rem solid #5a0f2e;
+    border-radius: 0.125rem;
+    color: #c9a9a6;
+    background: linear-gradient(180deg, #3a1010 0%, #2a0808 100%);
+    font-family: 'Special Elite', monospace;
+    transition: all 0.2s;
+    cursor: pointer;
+}
+.tb-btn:hover { background: linear-gradient(180deg, #5a0f2e 0%, #3a1010 100%); color: #f5e6d3; border-color: #8B0000; }
+.tb-btn.active { background: linear-gradient(180deg, #8B0000 0%, #5a0f2e 100%); color: #f5e6d3; border-color: #8B0000; }
+
+.tb-select {
+    padding: 0.1875rem 0.375rem;
+    font-size: 0.6875rem;
+    font-family: 'Special Elite', monospace;
+    border: 0.0625rem solid #5a0f2e;
+    border-radius: 0.125rem;
+    color: #c9a9a6;
+    background: #2a0808;
+    outline: none;
+    cursor: pointer;
+}
+
+
+
+
+
+
+
+
+
+
+
+/*---------------------------CANVAS---------------------------*/
+.canvas-area {
+    position: relative;
+    display: flex;
+    flex: 1;
+    align-items: flex-start;
+    justify-content: center;
+    min-height: calc(100vh - 3.75rem);
+    overflow: visible;
+    z-index: 1;
+}
+
+.paper {
+    position: relative;
+    margin: 3.125rem;
+    flex-shrink: 0;
+    width: 37.1875rem;
+    min-height: 52.625rem;
+    transform-style: preserve-3d;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    overflow: visible;
+    cursor: text;
+}
+
+.paper-bg {
+    position: absolute;
+    inset: 0;
+    border-radius: 0.125rem;
+}
+
+.paper.parchment .paper-bg {
+    background: radial-gradient(ellipse at 30% 20%, #f5e6d3 0%, #ead7c0 40%, #d4b896 100%);
+}
+.paper.aged .paper-bg {
+    background: radial-gradient(ellipse at 40% 30%, #e8d5b0 0%, #c9a87a 50%, #8a6040 100%);
+}
+.paper.dark .paper-bg {
+    background: radial-gradient(ellipse at 50% 50%, #2a1a0a 0%, #1a0a00 100%);
+}
+.paper.clean .paper-bg {
+    background: #fffdf8;
+}
+.paper.ink .paper-bg {
+    background: radial-gradient(ellipse at 20% 80%, #c9a87a 0%, #e8d5b0 30%, #f5e6d3 70%, #ddc8a0 100%);
+}
+
+.paper-lines {
+    position: absolute;
+    inset: 3.75rem 3.125rem;
+    pointer-events: none;
+    display: none;
+}
+.paper.lined .paper-lines { display: block; }
+.paper-line {
+    width: 100%;
+    height: 0.0625rem;
+    background: rgba(139,0,0,0.15);
+    margin-bottom: 1.6875rem;
+}
+
+.paper-frame {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    overflow: hidden;
+    border-radius: 0.125rem;
+}
+
+.frame-svg {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+}
+
+.burned-edges {
+    position: absolute;
+    inset: 0;
+    border-radius: 0.125rem;
+    pointer-events: none;
+    background: 
+        radial-gradient(ellipse at 0% 0%, rgba(20,5,0,0.6) 0%, transparent 25%),
+        radial-gradient(ellipse at 100% 0%, rgba(20,5,0,0.5) 0%, transparent 25%),
+        radial-gradient(ellipse at 0% 100%, rgba(20,5,0,0.6) 0%, transparent 25%),
+        radial-gradient(ellipse at 100% 100%, rgba(20,5,0,0.5) 0%, transparent 25%),
+        radial-gradient(ellipse at 50% 0%, rgba(20,5,0,0.3) 0%, transparent 15%),
+        radial-gradient(ellipse at 50% 100%, rgba(20,5,0,0.4) 0%, transparent 15%);
+}
+
+.vignette {
+    position: absolute;
+    inset: 0;
+    border-radius: 0.125rem;
+    pointer-events: none;
+}
+.vignette.candlelight {
+    background: radial-gradient(ellipse at 50% 40%, transparent 30%, rgba(139,60,0,0.15) 60%, rgba(80,20,0,0.35) 100%);
+}
+.vignette.normal {
+    background: radial-gradient(ellipse at 50% 50%, transparent 50%, rgba(0,0,0,0.12) 100%);
+}
+
+.paper-content {
+    position: absolute;
+    inset: 0;
+    padding: 4.375rem 3.75rem 3.75rem;
+    z-index: 3;
+}
+
+.letter-header {
+    margin-bottom: 1.5rem;
+    display: none;
+}
+.letter-header.show { display: block; }
+
+.letter-date {
+    text-align: right;
+    font-family: 'IM Fell English', serif;
+    font-style: italic;
+    font-size: 0.8125rem;
+    color: #5A0F2E;
+    margin-bottom: 0.5rem;
+    opacity: 0.85;
+    outline: none;
+}
+.letter-greeting {
+    font-family: 'IM Fell English', serif;
+    font-style: italic;
+    font-size: 0.9375rem;
+    color: #2B0000;
+    margin-bottom: 1rem;
+    outline: none;
+}
+
+.letter-body {
+    min-height: 25rem;
+    outline: none;
+    font-size: 0.9375rem;
+    line-height: 1.85;
+    color: #2B0000;
+    word-break: break-word;
+    white-space: pre-wrap;
+}
+
+.letter-signature {
+    margin-top: 2rem;
+    text-align: right;
+    display: none;
+}
+.letter-signature.show { display: block; }
+.sig-label {
+    font-family: 'IM Fell English', serif;
+    font-style: italic;
+    font-size: 0.8125rem;
+    color: #5A0F2E;
+    opacity: 0.8;
+    margin-bottom: 0.25rem;
+    outline: none;
+}
+.sig-name {
+    font-family: 'UnifrakturMaguntia', cursive;
+    font-size: 1.375rem;
+    color: #8B0000;
+    outline: none;
+}
+
+
+
+
+
+
+
+
+
+/* Sticker management */
+.sticker-layer {
+    position: absolute;
+    align-items: center;
+    justify-content: center;
+    pointer-events: none;
+    z-index: 5;
+}
+
+
+.sticker {
+    position: absolute;
+    cursor: grab;
+    pointer-events: all;
+    user-select: none;
+    filter: drop-shadow(0 0.125rem 0.25rem rgba(0,0,0,0.3));
+    z-index: 10;
+    min-width: 1.875rem;
+    min-height: 1.875rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    will-change: transform, width, height;
+    overflow: visible;
+}
+
+/* Add to your CSS file */
+.sticker.selected {
+    outline: 0.125rem solid #8B0000;
+    outline-offset: 0.125rem;
+}
+
+/* Remove the old problematic styles */
+.sticker:active { 
+    cursor: grabbing; 
+}
+
+.sticker:hover { 
+    transition: transform 0.2s; 
+}
+
+/* Style for emoji stickers */
+.sticker-emoji {
+    font-size: 2.5rem;
+    line-height: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* For image stickers - control stretching behavior */
+.sticker img {
+    width: 100%;
+    height: 100%;
+    display: block;
+    pointer-events: none;
+}
+
+/* When NOT stretched (lock mode) - maintain aspect ratio */
+.sticker:not(.stretched) img {
+    object-fit: contain;
+}
+
+/* When stretched - allow distortion */
+.sticker.stretched img {
+    object-fit: fill;
+}
+
+/* Fix for the resize handle visibility when transformed */
+.resize-handle {
+    position: absolute;
+    bottom: -0.25rem;
+    right: -0.25rem;
+    width: 1rem;
+    height: 1rem;
+    background-color: #8B0000;
+    cursor: nw-resize;
+    border-radius: 0.125rem;
+    border: 0.0625rem solid #f5e6d3;
+    opacity: 0;
+    transition: opacity 0.2s;
+    z-index: 20;
+    pointer-events: auto;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+/* Sticker toolbar inputs */
+#stickerWidth, #stickerHeight {
+    width: 4rem;
+    background: #2a0808;
+    border: 0.0625rem solid #5a0f2e;
+    color: #c9a9a6;
+    padding: 0.25rem;
+    font-size: 0.6875rem;
+    font-family: 'Special Elite', monospace;
+    text-align: center;
+}
+
+#stickerWidth:focus, #stickerHeight:focus {
+    outline: none;
+    border-color: #8B0000;
+}
+
+/* Lock button styles */
+#lockAspectBtn {
+    transition: all 0.2s;
+}
+
+#lockAspectBtn.locked {
+    background: linear-gradient(180deg, #8B0000 0%, #5a0f2e 100%);
+    color: #f5e6d3;
+    border-color: #8B0000;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+/* Fix for rotation handle */
+.rotate-handle {
+    position: absolute;
+    top: -0.9375rem;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 1rem;
+    height: 1rem;
+    background-color: #5a0f2e;
+    cursor: grab;
+    border-radius: 50%;
+    border: 0.0625rem solid #f5e6d3;
+    opacity: 0;
+    transition: opacity 0.2s;
+    z-index: 20;
+    pointer-events: auto;
+}
+
+.rotate-handle:active {
+    cursor: grabbing;
+}
+
+.sticker:hover .resize-handle,
+.sticker:hover .rotate-handle {
+    opacity: 0.8;
+}
+
+.resize-handle:hover,
+.rotate-handle:hover {
+    opacity: 1 !important;
+    background-color: #a00000;
+}
+
+.paper-shadow {
+    position: absolute;
+    inset: -0.25rem -0.125rem -0.75rem -0.125rem;
+    background: rgba(0,0,0,0.4);
+    border-radius: 0.25rem;
+    z-index: -1;
+    filter: blur(0.5rem);
+}
+
+
+
+
+
+
+
+
+
+/*---------------------------SIDE PANEL---------------------------*/
+.side-panel {
+    position: fixed;
+    padding: 0.75rem;
+    width: 12.5rem;
+    right: 0;
+    border-left: 0.0625rem solid #5a0f2e;
+    background: linear-gradient(180deg, #2B0000 0%, #1a0808 100%);
+    transform: translateX(100%);
+    transition: transform 0.3s ease, top 0.3s ease, height 0.3s ease;
+    overflow-y: auto;
+    z-index: 200;
+}
+
+.side-panel.open { 
+    transform: translateX(0); 
+}
+
+.side-panel.open { 
+    transform: translateX(0); 
+}
+
+.panel-title {
+    font-family: 'Cinzel Decorative', serif;
+    font-size: 0.625rem;
+    color: #8B0000;
+    letter-spacing: 0.125rem;
+    margin-bottom: 0.625rem;
+    text-align: center;
+    border-bottom: 0.0625rem solid rgba(90,15,46,0.4);
+    padding-bottom: 0.375rem;
+}
+
+.panel-section {
+    margin-bottom: 0.875rem;
+    overflow: visible;
+    width: 100%;
+}
+
+.panel-label { 
+    font-size: 0.5625rem; 
+    color: #c9a9a6; 
+    letter-spacing: 0.0625rem; 
+    text-transform: uppercase; 
+    margin-bottom: 0.3125rem; 
+}
+
+.frame-grid { 
+    display: grid; 
+    grid-template-columns: 1fr 1fr; 
+    gap: 0.375rem; 
+}
+
+.frame-opt {
+    background: rgba(139,0,0,0.1);
+    border: 0.0625rem solid rgba(90,15,46,0.4);
+    border-radius: 0.125rem;
+    padding: 0.375rem 0.25rem;
+    text-align: center;
+    font-size: 0.5625rem;
+    color: #c9a9a6;
+    cursor: pointer;
+    transition: all 0.2s;
+    line-height: 1.3;
+}
+
+.frame-opt:hover { 
+    background: rgba(139,0,0,0.3); 
+    border-color: #8B0000; 
+    color: #f5e6d3; 
+}
+
+.frame-opt.active { 
+    background: rgba(139,0,0,0.4); 
+    border-color: #8B0000; 
+    color: #f5e6d3; 
+}
+
+
+
+
+
+
+
+
+/* Sticker grid - already set to 3 columns in your CSS */
+.sticker-grid { 
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 0.25rem; 
+    width: 100%;
+}
+
+/* Style for image sticker buttons */
+.sticker-image-btn {
+    padding: 0.25rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 3rem;
+}
+
+/* Preview image styling */
+.sticker-preview {
+    max-width: 100%;
+    max-height: 2.5rem;
+    width: auto;
+    height: auto;
+    object-fit: contain;
+    display: block;
+    margin: 0 auto;
+    pointer-events: none; /* So clicks go to the button */
+}
+
+/* Ensure buttons don't exceed grid width */
+.sticker-btn {
+    text-align: center;
+    padding: 0.3125rem;
+    font-size: 1.125rem;
+    line-height: 1;
+    border-radius: 0.125rem;
+    border: 0.0625rem solid rgba(90,15,46,0.3);
+    background: rgba(139,0,0,0.1);
+    transition: all 0.2s;
+    cursor: pointer;
+    overflow: hidden;
+    min-width: 0; /* Allows shrinking below content size */
+}
+
+/* For emoji buttons */
+.sticker-btn:not(.sticker-image-btn) {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+
+.sticker-btn:hover { 
+    background: rgba(139,0,0,0.35); 
+    border-color: #8B0000; 
+    transform: scale(1.15); 
+}
+
+/* Special case for the "Add yours" button */
+.add-image {
+    grid-column: 1 / -1;
+    color: #f5e6d3;
+    margin-top: 0.25rem;
+}
+
+.add-image:hover {
+    transform: scale(1.10);
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+.font-opt {
+    background: rgba(139,0,0,0.1);
+    border: 0.0625rem solid rgba(90,15,46,0.3);
+    border-radius: 0.125rem;
+    padding: 0.3125rem 0.5rem;
+    margin-bottom: 0.25rem;
+    cursor: pointer;
+    transition: all 0.2s;
+    font-size: 0.75rem;
+    color: #c9a9a6;
+}
+
+.font-opt:hover { 
+    background: rgba(139,0,0,0.3); 
+    border-color: #8B0000; 
+    color: #f5e6d3; 
+}
+
+.font-opt.active { 
+    background: rgba(139,0,0,0.4); 
+    border-color: #8B0000; 
+    color: #f5e6d3; 
+}
+
+.export-btn {
+    width: 100%;
+    background: linear-gradient(180deg, #8B0000 0%, #5a0f2e 100%);
+    border: 0.0625rem solid #8B0000;
+    color: #f5e6d3;
+    padding: 0.4375rem;
+    font-size: 0.6875rem;
+    cursor: pointer;
+    border-radius: 0.125rem;
+    font-family: 'Special Elite', monospace;
+    letter-spacing: 0.0625rem;
+    margin-bottom: 0.3125rem;
+    text-align: center;
+    transition: all 0.2s;
+}
+
+.export-btn:hover { 
+    background: linear-gradient(180deg, #a00000 0%, #6a1f3e 100%); 
+}
+
+.panel-toggle {
+    position: fixed;
+    right: 0;
+    top: 50%;
+    transform: translateY(-50%);
+    background: linear-gradient(180deg, #8B0000 0%, #5a0f2e 100%);
+    border: 0.0625rem solid #8B0000;
+    border-right: none;
+    color: #f5e6d3;
+    padding: 0.625rem 0.375rem;
+    cursor: pointer;
+    font-size: 0.625rem;
+    letter-spacing: 0.0625rem;
+    writing-mode: vertical-rl;
+    z-index: 201;
+    border-radius: 0.1875rem 0 0 0.1875rem;
+    font-family: 'Special Elite', monospace;
+    transition: right 0.3s ease;
+}
+
+.watermark {
+    position: absolute;
+    bottom: 1.25rem;
+    right: 1.5rem;
+    font-family: 'Cinzel Decorative', serif;
+    font-size: 0.4375rem;
+    color: rgba(139,0,0,0.2);
+    letter-spacing: 0.125rem;
+    pointer-events: none;
+    z-index: 2;
+}
+
+.canvas-area::-webkit-scrollbar { 
+    width: 0.375rem; 
+}
+
+.canvas-area::-webkit-scrollbar-track { 
+    background: #1a0a0a; 
+}
+
+.canvas-area::-webkit-scrollbar-thumb { 
+    background: #5a0f2e; 
+    border-radius: 0.1875rem; 
+}
+
+.sr-only {
+    position: absolute;
+    width: 0.0625rem;
+    height: 0.0625rem;
+    padding: 0;
+    margin: -0.0625rem;
+    overflow: hidden;
+    clip: rect(0,0,0,0);
+    border: 0;
+}
