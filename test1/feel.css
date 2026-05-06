@@ -1,0 +1,98 @@
+ * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+    }
+
+    body {
+        background-color: #1b1b19;
+        background-image: linear-gradient(145deg, #1b1b19 0%, #2a2a28 100%);
+        font-family: 'Helvetica Neue', Arial, sans-serif;
+        min-height: 100vh;
+    }
+
+    .container {
+        margin: 5rem auto;
+        max-width: 900px;
+    }
+
+    /* Paper styling */
+    .paper {
+        position: relative;
+        margin: 0 auto;
+        padding: 29.3px 50px;
+        min-height: 600px;
+        overflow: hidden;
+        border-radius: 8px;
+        background-color: #e6d4c2;
+        background-image: 
+            linear-gradient(rgba(53, 85, 131, 0.15) 1px, transparent 1px);
+        background-size: 100% 25px;
+        box-shadow: 
+            0 0 15px rgba(118, 80, 13, 0.3);
+    }
+
+    /* Red margin line */
+    .paper::before {
+        content: '';
+        position: absolute;
+        left: 30px;
+        top: 0;
+        bottom: 0;
+        width: 2px;
+        background: rgba(161, 76, 70, 0.45);
+    }
+
+    /* Text area */
+    .notes {
+        min-height: 500px;
+        font-size: 18px;
+        line-height: 25px;
+        color: #000018;
+        outline: none;
+        white-space: pre-wrap;
+        word-wrap: break-word;
+        padding-left: 20px;
+        font-family: 'Georgia', serif;
+        position: relative;
+        background: transparent;
+    }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+        .paper {
+            padding: 30px 40px;
+        }
+        
+        .paper::before {
+            left: 20px;
+        }
+        
+        .notes {
+            padding-left: 15px;
+            font-size: 16px;
+        }
+    }
+
+     @media (max-width: 480px) {
+        .container {
+            margin: 2rem 1.2rem;
+        }
+
+        .paper {
+            padding: 29px 24px; /* Changed from 32px to 28px - moved text up 4px */
+            margin-top: 2rem;
+            min-height: 400px;
+            background-size: 100% 24px;
+        }
+        
+        .paper::before {
+            left: 2rem;
+        }
+        
+        .notes {
+            padding-left: 0.77rem;
+            font-size: 0.97rem;
+            line-height: 24px;
+        }
+    }

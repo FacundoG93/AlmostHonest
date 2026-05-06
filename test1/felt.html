@@ -1,0 +1,506 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <title>Tome of Whispers | Precision Text-Guided Writing</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      background: #1a1410;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      padding: 32px 20px;
+      font-family: 'Georgia', 'Times New Roman', 'Palatino', serif;
+    }
+
+    .page {
+      display: flex;
+      flex-direction: column;
+      position: relative;
+      width: min(920px, 90vw);
+      min-height: 70vh;
+      background: #fffaf2;
+      box-shadow: 0 20px 35px -12px rgba(0,0,0,0.6), inset 0 1px 0 rgba(255,255,240,0.6);
+      border-radius: 4px 4px 8px 8px;
+    }
+
+    .writing-wrapper {
+      position: relative;
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      padding: 56px 56px 56px 56px;
+    }
+
+    .letter {
+      position: relative;
+      z-index: 12;
+      outline: none;
+      font-size: 21px;
+      line-height: 1.55;
+      font-family: 'Georgia', 'Times New Roman', 'Palatino', serif;
+      color: #1f1b16;
+      background: transparent;
+      white-space: pre-wrap;
+      word-wrap: break-word;
+      overflow-wrap: break-word;
+      min-height: 500px;
+      flex: 1;
+      margin: 0;
+      padding: 0;
+      transition: font-size 0.1s ease;
+    }
+
+    .line-overlay {
+      position: absolute;
+      top: 56px;
+      left: 56px;
+      right: 56px;
+      bottom: 56px;
+      z-index: 5;
+      pointer-events: none;
+      overflow: hidden;
+    }
+
+    .rule-line {
+      position: absolute;
+      left: 0;
+      width: 100%;
+      border-bottom: 1px solid rgba(170, 65, 50, 0.65);
+      pointer-events: none;
+    }
+
+    .controls {
+      margin-top: 32px;
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 18px;
+      align-items: center;
+      background: rgba(26, 20, 16, 0.65);
+      backdrop-filter: blur(4px);
+      padding: 12px 28px;
+      border-radius: 60px;
+      border: 1px solid rgba(200, 70, 50, 0.5);
+    }
+
+    .btn {
+      background: #9e2a1f;
+      border: none;
+      padding: 8px 24px;
+      font-size: 1.35rem;
+      font-weight: 500;
+      font-family: 'Segoe UI', 'Georgia', serif;
+      color: #fff6ea;
+      border-radius: 40px;
+      cursor: pointer;
+      transition: all 0.2s;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+      min-width: 70px;
+    }
+
+    .btn:hover {
+      background: #b53b2a;
+      transform: scale(0.96);
+    }
+
+    .mode-toggle {
+      background: #2a1f1a;
+      border: 2px solid #9e2a1f;
+      padding: 8px 20px;
+      font-size: 1rem;
+      font-weight: bold;
+      font-family: monospace;
+      letter-spacing: 1px;
+      min-width: 180px;
+    }
+
+    .mode-toggle:hover {
+      background: #3a2a24;
+      border-color: #c94f3a;
+    }
+
+    .font-size-display {
+      background: #2e231e;
+      padding: 6px 20px;
+      border-radius: 48px;
+      color: #f7e9da;
+      font-family: monospace;
+    }
+
+    .status-badge {
+      background: #2a201b;
+      padding: 6px 18px;
+      border-radius: 32px;
+      font-size: 0.85rem;
+      color: #e5cfb5;
+      font-family: monospace;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .led {
+      width: 12px;
+      height: 12px;
+      background-color: #c94f3a;
+      border-radius: 50%;
+      transition: all 0.2s;
+    }
+
+    @media (max-width: 750px) {
+      .mode-toggle { min-width: 140px; font-size: 0.85rem; padding: 6px 14px; }
+      .writing-wrapper { padding: 32px 28px 40px 28px; }
+      .line-overlay { top: 32px; left: 28px; right: 28px; bottom: 40px; }
+    }
+
+    .page::before {
+      content: "";
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: radial-gradient(circle at 20% 30%, rgba(210,180,140,0.08) 2%, transparent 2.5%);
+      background-size: 24px 24px;
+      pointer-events: none;
+      z-index: 0;
+      border-radius: inherit;
+    }
+  </style>
+</head>
+<body>
+<div class="page">
+  <div class="writing-wrapper">
+    <div class="letter" contenteditable="true" spellcheck="true" id="editableLetter">
+      <p style="margin:0 0 0.2rem 0;">The ink spills across the vellum like a confession long withheld.</p>
+      <p style="margin:0 0 0.2rem 0;">Here, between shadow and candlelight, every line remembers the tremor of the hand that wrote it.</p>
+      <p style="margin:0 0 0.2rem 0;">Let the quill find its own rhythm — the ruled whispers will follow if you desire.</p>
+      <p style="margin:0">—</p>
+    </div>
+    <div id="dynamicLinesOverlay" class="line-overlay"></div>
+  </div>
+</div>
+
+<div class="controls">
+  <button class="btn" id="decrementFontBtn">A−</button>
+  <button class="btn" id="incrementFontBtn">A+</button>
+  <span class="font-size-display"><span id="fontSizeValue">21</span>px · <span id="lineHeightPreview">1.55</span>lh</span>
+  <button class="btn mode-toggle" id="writingModeToggle">✧ TEXT-GUIDED ✧</button>
+  <div class="status-badge"><span class="led" id="ledIndicator"></span> <span id="ruleStatus">TEXT-GUIDED · LINES ONLY WHERE TEXT LIVES (NO HISTORY)</span></div>
+</div>
+
+<script>
+  (function() {
+    const linesContainer = document.getElementById('dynamicLinesOverlay');
+    const fontSizeSpan = document.getElementById('fontSizeValue');
+    const lineHeightPreviewSpan = document.getElementById('lineHeightPreview');
+    const modeToggleBtn = document.getElementById('writingModeToggle');
+    const ruleStatusSpan = document.getElementById('ruleStatus');
+    const ledIndicator = document.getElementById('ledIndicator');
+    
+    const editor = document.getElementById('editableLetter');
+    if (!editor) return;
+
+    let currentMode = 2;      // 0 = free, 1 = full ruled, 2 = text-guided
+    let currentFontSize = 21;
+    let currentLineHeightRatio = 1.55;
+    let updateTimer = null;
+    
+    // ------------------------------------------------------------------
+    // Helper: carácter visible (no espacio, no invisible)
+    // ------------------------------------------------------------------
+    function isVisibleCharacter(ch) {
+      if (!ch || ch.length === 0) return false;
+      if (/[\s\u00A0\u2000-\u200A\u202F\u205F\u3000]/.test(ch)) return false;
+      const invisible = ['\u200B', '\u200C', '\u200D', '\u200E', '\u200F', '\uFEFF', '\u00AD'];
+      if (invisible.includes(ch)) return false;
+      return true;
+    }
+    
+    // ------------------------------------------------------------------
+    // MODO GUIADO COMPLETO: líneas a lo largo de TODO el editor
+    // (incluyendo texto y vacío, con una línea extra al final)
+    // ------------------------------------------------------------------
+    function getFullRuledLines() {
+      if (!editor) return [];
+      const scrollHeight = editor.scrollHeight;
+      const lineHeightPx = currentFontSize * currentLineHeightRatio;
+      if (lineHeightPx <= 0) return [];
+      
+      const positions = [];
+      let currentBottom = lineHeightPx;
+      const limit = scrollHeight + lineHeightPx;
+      while (currentBottom <= limit) {
+        positions.push(currentBottom);
+        currentBottom += lineHeightPx;
+      }
+      return positions.map(bottom => ({ bottom }));
+    }
+    
+    // ------------------------------------------------------------------
+    // MODO TEXTO GUIADO: SOLO líneas que CONTIENEN texto visible AHORA
+    // SIN HISTORIAL, SIN LÍNEAS VACÍAS NUNCA
+    // ------------------------------------------------------------------
+    function getTextGuidedLines() {
+      if (!editor) return [];
+      
+      const probeDiv = document.createElement('div');
+      const editorStyle = window.getComputedStyle(editor);
+      probeDiv.style.position = 'absolute';
+      probeDiv.style.visibility = 'hidden';
+      probeDiv.style.top = '-9999px';
+      probeDiv.style.left = '-9999px';
+      probeDiv.style.width = editorStyle.width;
+      probeDiv.style.fontSize = editorStyle.fontSize;
+      probeDiv.style.fontFamily = editorStyle.fontFamily;
+      probeDiv.style.lineHeight = editorStyle.lineHeight;
+      probeDiv.style.whiteSpace = 'pre-wrap';
+      probeDiv.style.wordWrap = 'break-word';
+      probeDiv.style.padding = editorStyle.padding;
+      probeDiv.style.margin = editorStyle.margin;
+      probeDiv.style.boxSizing = editorStyle.boxSizing;
+      
+      const contentClone = editor.cloneNode(true);
+      contentClone.removeAttribute('contenteditable');
+      probeDiv.appendChild(contentClone);
+      document.body.appendChild(probeDiv);
+      
+      const offsetTop = probeDiv.getBoundingClientRect().top;
+      const linesMap = new Map(); // clave: posición bottom, valor: objeto con bottom
+      
+      try {
+        const cloneRoot = probeDiv.firstChild;
+        if (!cloneRoot) throw new Error('no content');
+        
+        // Recolectar posiciones de todos los caracteres visibles
+        const charPositions = [];
+        const walker = document.createTreeWalker(cloneRoot, NodeFilter.SHOW_TEXT, null);
+        while (walker.nextNode()) {
+          const node = walker.currentNode;
+          const text = node.textContent || '';
+          for (let i = 0; i < text.length; i++) {
+            if (isVisibleCharacter(text[i])) {
+              try {
+                const range = document.createRange();
+                range.setStart(node, i);
+                range.setEnd(node, i + 1);
+                const rect = range.getBoundingClientRect();
+                if (rect && rect.height > 0) {
+                  charPositions.push({
+                    top: rect.top - offsetTop,
+                    bottom: rect.bottom - offsetTop
+                  });
+                }
+              } catch(e) {}
+            }
+          }
+        }
+        
+        if (charPositions.length === 0) {
+          document.body.removeChild(probeDiv);
+          return [];
+        }
+        
+        // Agrupar por líneas según proximidad vertical
+        charPositions.sort((a, b) => a.top - b.top);
+        const lineHeightPx = currentFontSize * currentLineHeightRatio;
+        const threshold = lineHeightPx * 0.6;
+        let currentLineBottom = charPositions[0].bottom;
+        let currentLineTop = charPositions[0].top;
+        
+        for (let i = 1; i < charPositions.length; i++) {
+          if (Math.abs(charPositions[i].top - currentLineTop) > threshold) {
+            // Guardar la línea actual
+            const bottomKey = Math.round(currentLineBottom);
+            if (!linesMap.has(bottomKey)) {
+              linesMap.set(bottomKey, { bottom: currentLineBottom });
+            }
+            // Iniciar nueva línea
+            currentLineTop = charPositions[i].top;
+            currentLineBottom = charPositions[i].bottom;
+          } else {
+            currentLineBottom = Math.max(currentLineBottom, charPositions[i].bottom);
+            currentLineTop = Math.min(currentLineTop, charPositions[i].top);
+          }
+        }
+        // Guardar la última línea
+        const bottomKey = Math.round(currentLineBottom);
+        if (!linesMap.has(bottomKey)) {
+          linesMap.set(bottomKey, { bottom: currentLineBottom });
+        }
+        
+        // También considerar elementos no textuales (imágenes, botones, etc.)
+        const atomic = cloneRoot.querySelectorAll('img, svg, canvas, iframe, video, object, input, button, select, textarea, figure');
+        for (let el of atomic) {
+          let hasContent = false;
+          if (el.tagName === 'IMG' && (el.alt || el.src)) hasContent = true;
+          else if (el.tagName === 'INPUT' && (el.value || el.placeholder)) hasContent = true;
+          else if (el.tagName === 'BUTTON' && el.textContent.trim()) hasContent = true;
+          else if (el.tagName === 'SELECT' && el.options.length) hasContent = true;
+          else if (el.tagName === 'TEXTAREA' && (el.value || el.placeholder)) hasContent = true;
+          else if (el.tagName === 'FIGURE' && el.textContent.trim()) hasContent = true;
+          else if (el.tagName === 'SVG' && (el.getAttribute('aria-label') || el.textContent.trim())) hasContent = true;
+          if (hasContent) {
+            try {
+              const range = document.createRange();
+              range.selectNode(el);
+              const rect = range.getBoundingClientRect();
+              if (rect.height > 5) {
+                const bottom = rect.bottom - offsetTop;
+                const key = Math.round(bottom);
+                if (!linesMap.has(key)) {
+                  linesMap.set(key, { bottom });
+                }
+              }
+            } catch(e) {}
+          }
+        }
+      } catch(err) {
+        console.warn(err);
+      }
+      
+      document.body.removeChild(probeDiv);
+      
+      let positions = Array.from(linesMap.values()).map(v => v.bottom);
+      positions.sort((a, b) => a - b);
+      
+      // Deduplicar por si hay posiciones muy cercanas
+      const minDist = (currentFontSize * currentLineHeightRatio) * 0.4;
+      const unique = [];
+      for (let pos of positions) {
+        if (unique.length === 0 || (pos - unique[unique.length-1]) > minDist) {
+          unique.push(pos);
+        }
+      }
+      return unique.map(bottom => ({ bottom }));
+    }
+    
+    // ------------------------------------------------------------------
+    // RENDER: según el modo actual
+    // ------------------------------------------------------------------
+    function renderLines() {
+      if (!linesContainer || !editor) return;
+      if (currentMode === 0) {
+        linesContainer.innerHTML = '';
+        return;
+      }
+      
+      let lineData = [];
+      if (currentMode === 1) {
+        lineData = getFullRuledLines();
+      } else if (currentMode === 2) {
+        lineData = getTextGuidedLines();
+      }
+      
+      linesContainer.innerHTML = '';
+      if (!lineData || lineData.length === 0) return;
+      
+      const editorRect = editor.getBoundingClientRect();
+      const overlayRect = linesContainer.getBoundingClientRect();
+      const deltaY = editorRect.top - overlayRect.top;
+      
+      for (let item of lineData) {
+        const rule = document.createElement('div');
+        rule.className = 'rule-line';
+        rule.style.top = (item.bottom + deltaY - 1.5) + 'px';
+        rule.style.left = '0px';
+        rule.style.width = '100%';
+        linesContainer.appendChild(rule);
+      }
+    }
+    
+    function scheduleRender() {
+      if (updateTimer) clearTimeout(updateTimer);
+      updateTimer = setTimeout(() => {
+        renderLines();
+      }, 16);
+    }
+    
+    function updateModeUI() {
+      if (currentMode === 0) {
+        modeToggleBtn.innerHTML = "✧ FREE MODE ✧";
+        ruleStatusSpan.innerText = "FREE · NO LINES · PURE VELLUM";
+        ledIndicator.style.backgroundColor = "#7a5a4a";
+        modeToggleBtn.style.borderColor = "#b5664a";
+      } else if (currentMode === 1) {
+        modeToggleBtn.innerHTML = "✧ GUIDED MODE ✧";
+        ruleStatusSpan.innerText = "GUIDED · FULL RULED (lines everywhere, plus extra below)";
+        ledIndicator.style.backgroundColor = "#efb87e";
+        modeToggleBtn.style.borderColor = "#9e2a1f";
+      } else {
+        modeToggleBtn.innerHTML = "✧ TEXT-GUIDED ✧";
+        ruleStatusSpan.innerText = "TEXT-GUIDED · RULED ONLY WHERE TEXT LIVES (NO HISTORY)";
+        ledIndicator.style.backgroundColor = "#b8865a";
+        modeToggleBtn.style.borderColor = "#bc6f4a";
+      }
+      scheduleRender();
+    }
+    
+    function cycleMode() {
+      currentMode = (currentMode + 1) % 3;
+      updateModeUI();
+    }
+    
+    function setFontSize(newPx) {
+      newPx = Math.min(38, Math.max(12, newPx));
+      currentFontSize = newPx;
+      editor.style.fontSize = currentFontSize + 'px';
+      editor.style.lineHeight = currentLineHeightRatio;
+      fontSizeSpan.textContent = currentFontSize;
+      lineHeightPreviewSpan.textContent = currentLineHeightRatio.toFixed(2);
+      scheduleRender();
+    }
+    
+    let observer = null;
+    
+    function init() {
+      editor.style.fontSize = currentFontSize + 'px';
+      editor.style.lineHeight = currentLineHeightRatio;
+      fontSizeSpan.textContent = currentFontSize;
+      lineHeightPreviewSpan.textContent = currentLineHeightRatio.toFixed(2);
+      currentMode = 2;
+      updateModeUI();
+      
+      document.getElementById('decrementFontBtn').addEventListener('click', () => setFontSize(currentFontSize - 2));
+      document.getElementById('incrementFontBtn').addEventListener('click', () => setFontSize(currentFontSize + 2));
+      modeToggleBtn.addEventListener('click', cycleMode);
+      
+      const handleInput = () => {
+        scheduleRender();
+      };
+      
+      editor.addEventListener('input', handleInput);
+      editor.addEventListener('keyup', handleInput);
+      editor.addEventListener('paste', () => setTimeout(handleInput, 20));
+      window.addEventListener('resize', scheduleRender);
+      if (document.fonts?.ready) document.fonts.ready.then(scheduleRender);
+      
+      observer = new MutationObserver(() => scheduleRender());
+      observer.observe(editor, { childList: true, subtree: true, characterData: true, attributes: true });
+      
+      if (window.ResizeObserver) {
+        const ro = new ResizeObserver(() => scheduleRender());
+        ro.observe(editor);
+        ro.observe(linesContainer);
+      }
+      
+      setTimeout(() => {
+        renderLines();
+      }, 100);
+    }
+    
+    init();
+  })();
+</script>
+</body>
+</html>
