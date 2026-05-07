@@ -5,12 +5,12 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
   <title>Tome of Whispers | Precision Text-Guided Writing</title>
   <style>
-    /* ===== ESTILOS (sin cambios visuales respecto a la última versión funcional) ===== */
     * {
       margin: 0;
       padding: 0;
       box-sizing: border-box;
     }
+
     body {
       background: #1a1410;
       display: flex;
@@ -21,6 +21,7 @@
       padding: 32px 20px;
       font-family: 'Georgia', 'Times New Roman', 'Palatino', serif;
     }
+
     .page {
       display: flex;
       flex-direction: column;
@@ -31,6 +32,7 @@
       box-shadow: 0 20px 35px -12px rgba(0,0,0,0.6), inset 0 1px 0 rgba(255,255,240,0.6);
       border-radius: 4px 4px 8px 8px;
     }
+
     .writing-wrapper {
       position: relative;
       flex: 1;
@@ -38,6 +40,7 @@
       flex-direction: column;
       padding: 56px 56px 56px 56px;
     }
+
     .letter {
       position: relative;
       z-index: 12;
@@ -57,6 +60,7 @@
       transition: font-size 0.08s linear, line-height 0.08s linear;
       will-change: font-size, line-height;
     }
+
     .line-overlay {
       position: absolute;
       top: 56px;
@@ -67,6 +71,7 @@
       pointer-events: none;
       overflow: hidden;
     }
+
     .rule-line {
       position: absolute;
       left: 0;
@@ -75,6 +80,7 @@
       pointer-events: none;
       transition: top 0.05s linear;
     }
+
     .controls {
       margin-top: 32px;
       display: flex;
@@ -88,6 +94,7 @@
       border-radius: 60px;
       border: 1px solid rgba(200, 70, 50, 0.5);
     }
+
     .btn {
       background: #9e2a1f;
       border: none;
@@ -102,10 +109,12 @@
       box-shadow: 0 2px 6px rgba(0,0,0,0.2);
       min-width: 70px;
     }
+
     .btn:hover {
       background: #b53b2a;
       transform: scale(0.96);
     }
+
     .mode-toggle {
       background: #2a1f1a;
       border: 2px solid #9e2a1f;
@@ -116,10 +125,12 @@
       letter-spacing: 1px;
       min-width: 180px;
     }
+
     .mode-toggle:hover {
       background: #3a2a24;
       border-color: #c94f3a;
     }
+
     .font-size-display {
       background: #2e231e;
       padding: 6px 20px;
@@ -130,6 +141,7 @@
       align-items: center;
       gap: 8px;
     }
+
     .line-height-control {
       display: flex;
       align-items: center;
@@ -158,6 +170,7 @@
       text-align: center;
       font-weight: bold;
     }
+
     .status-badge {
       background: #2a201b;
       padding: 6px 18px;
@@ -169,6 +182,7 @@
       align-items: center;
       gap: 8px;
     }
+
     .led {
       width: 12px;
       height: 12px;
@@ -176,79 +190,15 @@
       border-radius: 50%;
       transition: all 0.2s;
     }
-    /* Toolbar flotante (sin cambios) */
-    .float-toolbar {
-      position: fixed;
-      z-index: 1000;
-      background: #2a1f1a;
-      border-radius: 12px;
-      box-shadow: 0 8px 20px rgba(0,0,0,0.3), 0 0 0 1px rgba(200,70,50,0.3);
-      display: flex;
-      align-items: center;
-      gap: 0px;
-      padding: 6px 10px;
-      font-family: 'Segoe UI', 'Georgia', serif;
-      pointer-events: auto;
-    }
-    .toolbar-aa {
-      background: #3a2a24;
-      border: none;
-      border-radius: 8px 0 0 8px;
-      padding: 6px 16px;
-      color: #f7e9da;
-      font-size: 1.2rem;
-      font-weight: bold;
-      font-family: 'Georgia', serif;
-      cursor: pointer;
-      transition: all 0.15s;
-    }
-    .toolbar-aa:hover {
-      background: #9e2a1f;
-    }
-    .toolbar-size {
-      background: #2e231e;
-      padding: 6px 12px;
-      font-size: 0.9rem;
-      font-family: monospace;
-      color: #f7e9da;
-      font-weight: bold;
-      border-left: 1px solid rgba(200,70,50,0.4);
-      border-right: 1px solid rgba(200,70,50,0.4);
-      min-width: 55px;
-      text-align: center;
-    }
-    .toolbar-btn {
-      background: #3a2a24;
-      border: none;
-      padding: 6px 14px;
-      color: #f7e9da;
-      font-size: 1.1rem;
-      font-weight: bold;
-      cursor: pointer;
-      transition: all 0.15s;
-      font-family: monospace;
-    }
-    .toolbar-btn-minus {
-      border-radius: 0;
-    }
-    .toolbar-btn-plus {
-      border-radius: 0 8px 8px 0;
-    }
-    .toolbar-btn:hover {
-      background: #9e2a1f;
-      transform: scale(1.02);
-    }
+
     @media (max-width: 750px) {
       .mode-toggle { min-width: 140px; font-size: 0.85rem; padding: 6px 14px; }
       .writing-wrapper { padding: 32px 28px 40px 28px; }
       .line-overlay { top: 32px; left: 28px; right: 28px; bottom: 40px; }
       .line-height-slider { width: 100px; }
       .line-height-control { padding: 4px 12px; }
-      .float-toolbar { transform: scale(0.9); transform-origin: top left; }
-      .toolbar-aa { padding: 4px 12px; font-size: 1rem; }
-      .toolbar-size { padding: 4px 8px; font-size: 0.75rem; min-width: 45px; }
-      .toolbar-btn { padding: 4px 10px; font-size: 1rem; }
     }
+
     .page::before {
       content: "";
       position: absolute;
@@ -281,20 +231,15 @@
   <button class="btn" id="decrementFontBtn">A−</button>
   <button class="btn" id="incrementFontBtn">A+</button>
   <span class="font-size-display"><span id="fontSizeValue">21</span>px</span>
+  
   <div class="line-height-control">
     <label>📏 Espaciado</label>
     <input type="range" id="lineHeightSlider" class="line-height-slider" min="1.0" max="2.5" step="0.01" value="1.55">
     <span id="lineHeightPreview" class="line-height-value">1.55</span>
   </div>
+
   <button class="btn mode-toggle" id="writingModeToggle">✧ TEXT-GUIDED ✧</button>
   <div class="status-badge"><span class="led" id="ledIndicator"></span> <span id="ruleStatus">TEXT-GUIDED · LINES ONLY WHERE TEXT LIVES</span></div>
-</div>
-
-<div id="floatToolbar" class="float-toolbar" style="display: none;">
-  <button class="toolbar-aa" id="toolbarAa">Aa</button>
-  <div class="toolbar-size" id="toolbarSizeValue">21</div>
-  <button class="toolbar-btn toolbar-btn-minus" id="toolbarMinus">A−</button>
-  <button class="toolbar-btn toolbar-btn-plus" id="toolbarPlus">A+</button>
 </div>
 
 <script>
@@ -306,24 +251,19 @@
     const modeToggleBtn = document.getElementById('writingModeToggle');
     const ruleStatusSpan = document.getElementById('ruleStatus');
     const ledIndicator = document.getElementById('ledIndicator');
+    
     const editor = document.getElementById('editableLetter');
     if (!editor) return;
 
-    const floatToolbar = document.getElementById('floatToolbar');
-    const toolbarSizeValue = document.getElementById('toolbarSizeValue');
-    const toolbarMinus = document.getElementById('toolbarMinus');
-    const toolbarPlus = document.getElementById('toolbarPlus');
-
-    let currentMode = 2;
+    let currentMode = 2;      // 0 = free, 1 = full ruled, 2 = text-guided
     let currentFontSize = 21;
     let currentLineHeightRatio = 1.55;
     let updateTimer = null;
     let rafId = null;
-    let activeSelectionRange = null;
-
-    // --------------------------------------------------------------
+    
+    // ------------------------------------------------------------------
     // Helper: carácter visible
-    // --------------------------------------------------------------
+    // ------------------------------------------------------------------
     function isVisibleCharacter(ch) {
       if (!ch || ch.length === 0) return false;
       if (/[\s\u00A0\u2000-\u200A\u202F\u205F\u3000]/.test(ch)) return false;
@@ -331,15 +271,159 @@
       if (invisible.includes(ch)) return false;
       return true;
     }
-
-    // --------------------------------------------------------------
-    // Obtener posición real de cada línea de texto (baseline bottom)
-    // Esta función es la base para ambos modos: devuelve todas las líneas
-    // donde hay al menos un carácter visible.
-    // --------------------------------------------------------------
-    function getRealTextLines() {
+    
+    // ------------------------------------------------------------------
+    // Obtener la línea base teórica (para modo guiado sin texto)
+    // IMPORTANTE: Se clona el editor y se añade una 'M' para que herede
+    // exactamente el mismo line-height, padding, etc.
+    // ------------------------------------------------------------------
+    let cachedBaselineOffset = null;
+    function getTheoreticalBaselineOffset() {
+      if (cachedBaselineOffset !== null) return cachedBaselineOffset;
+      
+      // Clonamos el editor para mantener el mismo contexto de estilo
+      const probeDiv = document.createElement('div');
+      const editorStyle = window.getComputedStyle(editor);
+      probeDiv.style.position = 'absolute';
+      probeDiv.style.visibility = 'hidden';
+      probeDiv.style.top = '-9999px';
+      probeDiv.style.left = '-9999px';
+      probeDiv.style.width = editorStyle.width;
+      probeDiv.style.fontSize = editorStyle.fontSize;
+      probeDiv.style.fontFamily = editorStyle.fontFamily;
+      probeDiv.style.lineHeight = editorStyle.lineHeight;
+      probeDiv.style.whiteSpace = 'pre-wrap';
+      probeDiv.style.padding = editorStyle.padding;
+      probeDiv.style.margin = editorStyle.margin;
+      probeDiv.style.boxSizing = editorStyle.boxSizing;
+      
+      const contentClone = editor.cloneNode(true);
+      contentClone.removeAttribute('contenteditable');
+      // Limpiamos el contenido del clon para tener solo la 'M'
+      contentClone.innerHTML = '<span style="display: inline;">M</span>';
+      probeDiv.appendChild(contentClone);
+      document.body.appendChild(probeDiv);
+      
+      const offsetTop = probeDiv.getBoundingClientRect().top;
+      let baseline = null;
+      try {
+        const walker = document.createTreeWalker(probeDiv, NodeFilter.SHOW_TEXT, null);
+        while (walker.nextNode()) {
+          const node = walker.currentNode;
+          if (node.textContent === 'M') {
+            const range = document.createRange();
+            range.selectNode(node);
+            const rect = range.getBoundingClientRect();
+            if (rect && rect.height > 0) {
+              baseline = rect.bottom - offsetTop;
+              break;
+            }
+          }
+        }
+      } catch(e) {}
+      
+      document.body.removeChild(probeDiv);
+      cachedBaselineOffset = baseline;
+      return baseline;
+    }
+    
+    // ------------------------------------------------------------------
+    // Obtener la posición Y de la línea base de la primera línea de texto real
+    // Si no hay texto visible, devuelve null
+    // ------------------------------------------------------------------
+    function getFirstRealBaseline() {
+      const tempDiv = document.createElement('div');
+      const style = window.getComputedStyle(editor);
+      tempDiv.style.position = 'absolute';
+      tempDiv.style.visibility = 'hidden';
+      tempDiv.style.top = '-9999px';
+      tempDiv.style.width = style.width;
+      tempDiv.style.fontSize = style.fontSize;
+      tempDiv.style.fontFamily = style.fontFamily;
+      tempDiv.style.lineHeight = style.lineHeight;
+      tempDiv.style.whiteSpace = 'pre-wrap';
+      tempDiv.style.padding = style.padding;
+      const clone = editor.cloneNode(true);
+      clone.removeAttribute('contenteditable');
+      tempDiv.appendChild(clone);
+      document.body.appendChild(tempDiv);
+      
+      let baseline = null;
+      try {
+        const walker = document.createTreeWalker(tempDiv, NodeFilter.SHOW_TEXT, null);
+        while (walker.nextNode()) {
+          const node = walker.currentNode;
+          const text = node.textContent || '';
+          for (let i = 0; i < text.length; i++) {
+            if (isVisibleCharacter(text[i])) {
+              const range = document.createRange();
+              range.setStart(node, i);
+              range.setEnd(node, i + 1);
+              const rect = range.getBoundingClientRect();
+              if (rect && rect.height > 0) {
+                const offsetTop = tempDiv.getBoundingClientRect().top;
+                baseline = rect.bottom - offsetTop;
+                break;
+              }
+            }
+          }
+          if (baseline !== null) break;
+        }
+      } catch(e) {}
+      document.body.removeChild(tempDiv);
+      return baseline;
+    }
+    
+    // ------------------------------------------------------------------
+    // MODO GUIADO COMPLETO: líneas espaciadas uniformemente, alineadas a la baseline real
+    // ------------------------------------------------------------------
+    function getFullRuledLines() {
       if (!editor) return [];
-
+      const scrollHeight = editor.scrollHeight;
+      const lineHeightPx = currentFontSize * currentLineHeightRatio;
+      if (lineHeightPx <= 0) return [];
+      
+      // Intentar obtener baseline real de la primera línea de texto
+      let firstBaseline = getFirstRealBaseline();
+      if (firstBaseline === null) {
+        // No hay texto: usar la baseline teórica (medida con el mismo estilo)
+        firstBaseline = getTheoreticalBaselineOffset();
+      }
+      // Si aún es null (por algún error), usamos un valor por defecto
+      if (firstBaseline === null) {
+        firstBaseline = lineHeightPx * 0.8;
+      }
+      
+      const positions = new Set();
+      positions.add(firstBaseline);
+      
+      // Líneas hacia abajo hasta scrollHeight + lineHeightPx
+      let current = firstBaseline + lineHeightPx;
+      while (current <= scrollHeight + lineHeightPx) {
+        positions.add(current);
+        current += lineHeightPx;
+      }
+      
+      // Líneas hacia arriba para cubrir el espacio superior (desde firstBaseline hacia 0)
+      current = firstBaseline - lineHeightPx;
+      while (current > 0) {
+        positions.add(current);
+        current -= lineHeightPx;
+      }
+      
+      // Convertir a array ordenado y filtrar valores negativos o cero
+      const result = Array.from(positions)
+        .filter(pos => pos > 0)
+        .sort((a, b) => a - b);
+      return result.map(bottom => ({ bottom }));
+    }
+    
+    // ------------------------------------------------------------------
+    // MODO TEXTO GUIADO: líneas solo donde hay texto
+    // ------------------------------------------------------------------
+    function getTextGuidedLines() {
+      if (!editor) return [];
+      
       const probeDiv = document.createElement('div');
       const editorStyle = window.getComputedStyle(editor);
       probeDiv.style.position = 'absolute';
@@ -355,19 +439,19 @@
       probeDiv.style.padding = editorStyle.padding;
       probeDiv.style.margin = editorStyle.margin;
       probeDiv.style.boxSizing = editorStyle.boxSizing;
-
+      
       const contentClone = editor.cloneNode(true);
       contentClone.removeAttribute('contenteditable');
       probeDiv.appendChild(contentClone);
       document.body.appendChild(probeDiv);
-
+      
       const offsetTop = probeDiv.getBoundingClientRect().top;
       const linesMap = new Map();
-
+      
       try {
         const cloneRoot = probeDiv.firstChild;
-        if (!cloneRoot) return [];
-
+        if (!cloneRoot) throw new Error('no content');
+        
         const charPositions = [];
         const walker = document.createTreeWalker(cloneRoot, NodeFilter.SHOW_TEXT, null);
         while (walker.nextNode()) {
@@ -392,18 +476,18 @@
             }
           }
         }
-
+        
         if (charPositions.length === 0) {
           document.body.removeChild(probeDiv);
           return [];
         }
-
+        
         charPositions.sort((a, b) => a.top - b.top);
         const lineHeightPx = currentFontSize * currentLineHeightRatio;
         const threshold = lineHeightPx * 0.6;
         let currentLineBaseline = charPositions[0].baseline;
         let currentLineTop = charPositions[0].top;
-
+        
         for (let i = 1; i < charPositions.length; i++) {
           if (Math.abs(charPositions[i].top - currentLineTop) > threshold) {
             const key = Math.round(currentLineBaseline);
@@ -421,8 +505,7 @@
         if (!linesMap.has(lastKey)) {
           linesMap.set(lastKey, { bottom: currentLineBaseline });
         }
-
-        // Elementos no textuales (imágenes, etc.)
+        
         const atomic = cloneRoot.querySelectorAll('img, svg, canvas, iframe, video, object, input, button, select, textarea, figure');
         for (let el of atomic) {
           let hasContent = false;
@@ -448,12 +531,14 @@
             } catch(e) {}
           }
         }
-      } catch(err) { console.warn(err); }
-
+      } catch(err) {
+        console.warn(err);
+      }
+      
       document.body.removeChild(probeDiv);
+      
       let positions = Array.from(linesMap.values()).map(v => v.bottom);
       positions.sort((a, b) => a - b);
-      // deduplicar
       const minDist = (currentFontSize * currentLineHeightRatio) * 0.4;
       const unique = [];
       for (let pos of positions) {
@@ -463,75 +548,31 @@
       }
       return unique.map(bottom => ({ bottom }));
     }
-
-    // --------------------------------------------------------------
-    // MODO TEXTO GUIADO: exactamente las líneas reales (solo texto)
-    // --------------------------------------------------------------
-    function getTextGuidedLines() {
-      return getRealTextLines();
-    }
-
-    // --------------------------------------------------------------
-    // MODO GUIADO COMPLETO: líneas reales + relleno uniforme arriba/abajo
-    // --------------------------------------------------------------
-    function getFullRuledLines() {
-      const realLines = getRealTextLines();
-      if (realLines.length === 0) return [];
-
-      const scrollHeight = editor.scrollHeight;
-      const lineHeightPx = currentFontSize * currentLineHeightRatio;
-      if (lineHeightPx <= 0) return realLines;
-
-      // Tomamos la primera y última línea real como referencia
-      const firstBaseline = realLines[0].bottom;
-      const lastBaseline = realLines[realLines.length - 1].bottom;
-
-      const allPositions = new Set(realLines.map(l => l.bottom));
-
-      // Añadir líneas hacia arriba (encima de la primera línea real)
-      let current = firstBaseline - lineHeightPx;
-      while (current > 0) {
-        allPositions.add(current);
-        current -= lineHeightPx;
-      }
-      // Añadir líneas hacia abajo (debajo de la última línea real) hasta scrollHeight + lineHeightPx
-      current = lastBaseline + lineHeightPx;
-      const limit = scrollHeight + lineHeightPx;
-      while (current <= limit) {
-        allPositions.add(current);
-        current += lineHeightPx;
-      }
-
-      const result = Array.from(allPositions)
-        .filter(pos => pos > 0 && pos <= limit)
-        .sort((a, b) => a - b);
-      return result.map(bottom => ({ bottom }));
-    }
-
-    // --------------------------------------------------------------
-    // RENDER
-    // --------------------------------------------------------------
+    
+    // ------------------------------------------------------------------
+    // RENDER suave
+    // ------------------------------------------------------------------
     function renderLines() {
       if (!linesContainer || !editor) return;
       if (currentMode === 0) {
         linesContainer.innerHTML = '';
         return;
       }
-
+      
       let lineData = [];
       if (currentMode === 1) {
         lineData = getFullRuledLines();
       } else if (currentMode === 2) {
         lineData = getTextGuidedLines();
       }
-
+      
       linesContainer.innerHTML = '';
       if (!lineData || lineData.length === 0) return;
-
+      
       const editorRect = editor.getBoundingClientRect();
       const overlayRect = linesContainer.getBoundingClientRect();
       const deltaY = editorRect.top - overlayRect.top;
-
+      
       const fragment = document.createDocumentFragment();
       for (let item of lineData) {
         const rule = document.createElement('div');
@@ -543,7 +584,7 @@
       }
       linesContainer.appendChild(fragment);
     }
-
+    
     function scheduleRender() {
       if (updateTimer) clearTimeout(updateTimer);
       if (rafId) cancelAnimationFrame(rafId);
@@ -554,108 +595,16 @@
         });
       }, 12);
     }
-
-    // --------------------------------------------------------------
-    // TOOLBAR flotante y selección (sin cambios relevantes)
-    // --------------------------------------------------------------
-    function applyFontSizeToSelection(newSizePx) {
-      if (!activeSelectionRange) return;
-      const selection = window.getSelection();
-      selection.removeAllRanges();
-      selection.addRange(activeSelectionRange);
-      const range = selection.getRangeAt(0);
-      if (range.collapsed) return;
-      const span = document.createElement('span');
-      span.style.fontSize = newSizePx + 'px';
-      span.style.display = 'inline';
-      span.style.lineHeight = 'inherit';
-      try {
-        range.surroundContents(span);
-        const newRange = document.createRange();
-        newRange.selectNodeContents(span);
-        activeSelectionRange = newRange;
-        selection.removeAllRanges();
-        selection.addRange(newRange);
-        toolbarSizeValue.textContent = newSizePx;
-        scheduleRender();
-      } catch (e) {
-        try {
-          const contents = range.extractContents();
-          const wrapper = document.createElement('span');
-          wrapper.style.fontSize = newSizePx + 'px';
-          wrapper.style.lineHeight = 'inherit';
-          wrapper.appendChild(contents);
-          range.insertNode(wrapper);
-          const newRange = document.createRange();
-          newRange.selectNodeContents(wrapper);
-          activeSelectionRange = newRange;
-          selection.removeAllRanges();
-          selection.addRange(newRange);
-          toolbarSizeValue.textContent = newSizePx;
-          scheduleRender();
-        } catch(e2) {}
-      }
-    }
-
-    function getFontSizeOfSelection(range) {
-      if (!range) return currentFontSize;
-      const fragment = range.cloneContents();
-      const tempDiv = document.createElement('div');
-      tempDiv.appendChild(fragment);
-      const spans = tempDiv.querySelectorAll('[style*="font-size"]');
-      for (let span of spans) {
-        const style = span.getAttribute('style');
-        if (style) {
-          const match = style.match(/font-size:\s*(\d+)px/);
-          if (match) return parseInt(match[1], 10);
-        }
-      }
-      return currentFontSize;
-    }
-
-    function showToolbarForSelection(range) {
-      if (!range) return;
-      const rect = range.getBoundingClientRect();
-      if (rect.width === 0 && rect.height === 0) return;
-      activeSelectionRange = range.cloneRange();
-      const currentSize = getFontSizeOfSelection(range);
-      toolbarSizeValue.textContent = currentSize;
-      let top = rect.top - floatToolbar.offsetHeight - 8;
-      let left = rect.left + (rect.width / 2) - (floatToolbar.offsetWidth / 2);
-      if (top < 10) top = rect.bottom + 8;
-      if (left < 10) left = 10;
-      if (left + floatToolbar.offsetWidth > window.innerWidth - 10)
-        left = window.innerWidth - floatToolbar.offsetWidth - 10;
-      floatToolbar.style.top = top + 'px';
-      floatToolbar.style.left = left + 'px';
-      floatToolbar.style.display = 'flex';
-    }
-
-    function hideToolbar() {
-      floatToolbar.style.display = 'none';
-      activeSelectionRange = null;
-    }
-
-    function onTextSelection() {
-      const selection = window.getSelection();
-      if (selection && !selection.isCollapsed && selection.toString().trim().length > 0) {
-        showToolbarForSelection(selection.getRangeAt(0));
-      } else {
-        hideToolbar();
-      }
-    }
-
-    // --------------------------------------------------------------
-    // CONTROLES GLOBALES
-    // --------------------------------------------------------------
+    
     function setLineHeight(value) {
       currentLineHeightRatio = Math.min(2.5, Math.max(1.0, parseFloat(value)));
       editor.style.lineHeight = currentLineHeightRatio;
       lineHeightSlider.value = currentLineHeightRatio;
       lineHeightPreviewSpan.textContent = currentLineHeightRatio.toFixed(2);
+      cachedBaselineOffset = null; // invalidar caché porque cambia el line-height
       scheduleRender();
     }
-
+    
     function updateModeUI() {
       if (currentMode === 0) {
         modeToggleBtn.innerHTML = "✧ FREE MODE ✧";
@@ -664,7 +613,7 @@
         modeToggleBtn.style.borderColor = "#b5664a";
       } else if (currentMode === 1) {
         modeToggleBtn.innerHTML = "✧ GUIDED MODE ✧";
-        ruleStatusSpan.innerText = "GUIDED · FULL RULED (adapts to mixed font sizes)";
+        ruleStatusSpan.innerText = "GUIDED · FULL RULED (lines everywhere)";
         ledIndicator.style.backgroundColor = "#efb87e";
         modeToggleBtn.style.borderColor = "#9e2a1f";
       } else {
@@ -675,24 +624,23 @@
       }
       scheduleRender();
     }
-
+    
     function cycleMode() {
       currentMode = (currentMode + 1) % 3;
       updateModeUI();
     }
-
-    function setGlobalFontSize(newPx) {
+    
+    function setFontSize(newPx) {
       newPx = Math.min(38, Math.max(12, newPx));
       currentFontSize = newPx;
       editor.style.fontSize = currentFontSize + 'px';
       fontSizeSpan.textContent = currentFontSize;
+      cachedBaselineOffset = null; // invalidar caché porque cambia el tamaño
       scheduleRender();
     }
-
-    // --------------------------------------------------------------
-    // INICIO
-    // --------------------------------------------------------------
+    
     let observer = null;
+    
     function init() {
       editor.style.fontSize = currentFontSize + 'px';
       editor.style.lineHeight = currentLineHeightRatio;
@@ -701,64 +649,33 @@
       lineHeightPreviewSpan.textContent = currentLineHeightRatio.toFixed(2);
       currentMode = 2;
       updateModeUI();
-      floatToolbar.style.display = 'none';
-
-      document.getElementById('decrementFontBtn').addEventListener('click', () => setGlobalFontSize(currentFontSize - 2));
-      document.getElementById('incrementFontBtn').addEventListener('click', () => setGlobalFontSize(currentFontSize + 2));
+      
+      document.getElementById('decrementFontBtn').addEventListener('click', () => setFontSize(currentFontSize - 2));
+      document.getElementById('incrementFontBtn').addEventListener('click', () => setFontSize(currentFontSize + 2));
       modeToggleBtn.addEventListener('click', cycleMode);
       lineHeightSlider.addEventListener('input', (e) => setLineHeight(e.target.value));
-
-      toolbarMinus.addEventListener('click', (e) => {
-        e.stopPropagation();
-        if (!activeSelectionRange) return;
-        let currentVal = parseInt(toolbarSizeValue.textContent, 10);
-        if (isNaN(currentVal)) currentVal = currentFontSize;
-        let newVal = currentVal - 2;
-        if (newVal < 8) newVal = 8;
-        toolbarSizeValue.textContent = newVal;
-        applyFontSizeToSelection(newVal);
-      });
-      toolbarPlus.addEventListener('click', (e) => {
-        e.stopPropagation();
-        if (!activeSelectionRange) return;
-        let currentVal = parseInt(toolbarSizeValue.textContent, 10);
-        if (isNaN(currentVal)) currentVal = currentFontSize;
-        let newVal = currentVal + 2;
-        if (newVal > 72) newVal = 72;
-        toolbarSizeValue.textContent = newVal;
-        applyFontSizeToSelection(newVal);
-      });
-
-      document.addEventListener('mouseup', (e) => {
-        if (floatToolbar.contains(e.target)) return;
-        setTimeout(onTextSelection, 10);
-      });
-      document.addEventListener('mousedown', (e) => {
-        if (!editor.contains(e.target) && !floatToolbar.contains(e.target)) hideToolbar();
-      });
-
+      
       const handleInput = () => scheduleRender();
       editor.addEventListener('input', handleInput);
       editor.addEventListener('keyup', handleInput);
       editor.addEventListener('paste', () => setTimeout(handleInput, 20));
-      window.addEventListener('resize', () => {
-        scheduleRender();
-        if (floatToolbar.style.display === 'flex' && activeSelectionRange)
-          showToolbarForSelection(activeSelectionRange);
-      });
+      window.addEventListener('resize', scheduleRender);
       if (document.fonts?.ready) document.fonts.ready.then(scheduleRender);
-
+      
       observer = new MutationObserver(() => scheduleRender());
       observer.observe(editor, { childList: true, subtree: true, characterData: true, attributes: true });
-
+      
       if (window.ResizeObserver) {
         const ro = new ResizeObserver(() => scheduleRender());
         ro.observe(editor);
         ro.observe(linesContainer);
       }
-
-      setTimeout(() => renderLines(), 100);
+      
+      setTimeout(() => {
+        renderLines();
+      }, 100);
     }
+    
     init();
   })();
 </script>
