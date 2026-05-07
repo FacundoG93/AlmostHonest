@@ -5,116 +5,38 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
   <title>Tome of Whispers | Grid Fix Final</title>
   <style>
+    /* (Mismos estilos que antes, sin cambios) */
     *{margin:0;padding:0;box-sizing:border-box;}
-    body{
-      background:#1a1410;
-      display:flex;flex-direction:column;align-items:center;justify-content:center;
-      min-height:100vh;padding:32px 20px;
-      font-family:'Georgia','Times New Roman','Palatino',serif;
-    }
-    #sel-toolbar{
-      position:absolute;display:none;align-items:center;gap:2px;
-      background:#2a1f1a;border:1px solid rgba(200,70,50,0.55);
-      border-radius:8px;padding:5px 8px;z-index:9999;
-      white-space:nowrap;pointer-events:auto;
-      box-shadow:0 4px 16px rgba(0,0,0,0.55);
-    }
+    body{background:#1a1410;display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100vh;padding:32px 20px;font-family:'Georgia','Times New Roman','Palatino',serif;}
+    #sel-toolbar{position:absolute;display:none;align-items:center;gap:2px;background:#2a1f1a;border:1px solid rgba(200,70,50,0.55);border-radius:8px;padding:5px 8px;z-index:9999;white-space:nowrap;pointer-events:auto;box-shadow:0 4px 16px rgba(0,0,0,0.55);}
     #sel-toolbar.visible{display:flex;}
-    .tb-btn{
-      background:transparent;border:none;color:#f0dfc8;
-      font-family:'Georgia',serif;font-size:13px;font-weight:600;
-      padding:3px 7px;border-radius:5px;cursor:pointer;line-height:1;
-      transition:background 0.12s;min-width:28px;text-align:center;
-    }
+    .tb-btn{background:transparent;border:none;color:#f0dfc8;font-family:'Georgia',serif;font-size:13px;font-weight:600;padding:3px 7px;border-radius:5px;cursor:pointer;line-height:1;transition:background 0.12s;min-width:28px;text-align:center;}
     .tb-btn:hover{background:rgba(200,70,50,0.35);}
     .tb-btn.active{background:rgba(200,70,50,0.5);color:#ffd6b0;}
     .tb-sep{width:1px;height:18px;background:rgba(200,70,50,0.3);margin:0 3px;flex-shrink:0;}
-    .tb-size-wrap{
-      display:flex;align-items:center;gap:0;
-      background:rgba(0,0,0,0.3);border-radius:5px;overflow:hidden;
-    }
-    .tb-size-wrap button{
-      background:transparent;border:none;color:#f0dfc8;
-      font-size:14px;font-weight:700;width:22px;height:26px;
-      cursor:pointer;line-height:1;transition:background 0.12s;padding:0;
-    }
+    .tb-size-wrap{display:flex;align-items:center;gap:0;background:rgba(0,0,0,0.3);border-radius:5px;overflow:hidden;}
+    .tb-size-wrap button{background:transparent;border:none;color:#f0dfc8;font-size:14px;font-weight:700;width:22px;height:26px;cursor:pointer;line-height:1;transition:background 0.12s;padding:0;}
     .tb-size-wrap button:hover{background:rgba(200,70,50,0.35);}
-    #tb-size-val{
-      min-width:36px;text-align:center;font-family:monospace;
-      font-size:12px;color:#f7e9da;line-height:1;padding:0 2px;
-    }
-    .page{
-      display:flex;flex-direction:column;position:relative;
-      width:min(920px,90vw);min-height:70vh;background:#fffaf2;
-      box-shadow:0 20px 35px -12px rgba(0,0,0,0.6),inset 0 1px 0 rgba(255,255,240,0.6);
-      border-radius:4px 4px 8px 8px;
-    }
-    .writing-wrapper{
-      position:relative;flex:1;display:flex;flex-direction:column;padding:56px;
-    }
-    .letter{
-      position:relative;z-index:12;outline:none;
-      font-size:21px;line-height:1.55;
-      font-family:'Georgia','Times New Roman','Palatino',serif;
-      color:#1f1b16;background:transparent;
-      white-space:pre-wrap;word-wrap:break-word;overflow-wrap:break-word;
-      min-height:500px;flex:1;margin:0;padding:0;
-    }
-    .line-overlay{
-      position:absolute;top:56px;left:56px;right:56px;bottom:56px;
-      z-index:5;pointer-events:none;overflow:hidden;
-    }
-    .rule-line{
-      position:absolute;left:0;width:100%;
-      border-bottom:1px solid rgba(170,65,50,0.65);pointer-events:none;
-    }
-    .controls{
-      margin-top:32px;display:flex;flex-wrap:wrap;justify-content:center;
-      gap:18px;align-items:center;background:rgba(26,20,16,0.65);
-      backdrop-filter:blur(4px);padding:12px 28px;border-radius:60px;
-      border:1px solid rgba(200,70,50,0.5);
-    }
-    .btn{
-      background:#9e2a1f;border:none;padding:8px 24px;font-size:1.35rem;
-      font-weight:500;font-family:'Segoe UI','Georgia',serif;color:#fff6ea;
-      border-radius:40px;cursor:pointer;transition:all 0.2s;
-      box-shadow:0 2px 6px rgba(0,0,0,0.2);min-width:70px;
-    }
+    #tb-size-val{min-width:36px;text-align:center;font-family:monospace;font-size:12px;color:#f7e9da;line-height:1;padding:0 2px;}
+    .page{display:flex;flex-direction:column;position:relative;width:min(920px,90vw);min-height:70vh;background:#fffaf2;box-shadow:0 20px 35px -12px rgba(0,0,0,0.6),inset 0 1px 0 rgba(255,255,240,0.6);border-radius:4px 4px 8px 8px;}
+    .writing-wrapper{position:relative;flex:1;display:flex;flex-direction:column;padding:56px;}
+    .letter{position:relative;z-index:12;outline:none;font-size:21px;line-height:1.55;font-family:'Georgia','Times New Roman','Palatino',serif;color:#1f1b16;background:transparent;white-space:pre-wrap;word-wrap:break-word;overflow-wrap:break-word;min-height:500px;flex:1;margin:0;padding:0;}
+    .line-overlay{position:absolute;top:56px;left:56px;right:56px;bottom:56px;z-index:5;pointer-events:none;overflow:hidden;}
+    .rule-line{position:absolute;left:0;width:100%;border-bottom:1px solid rgba(170,65,50,0.65);pointer-events:none;}
+    .controls{margin-top:32px;display:flex;flex-wrap:wrap;justify-content:center;gap:18px;align-items:center;background:rgba(26,20,16,0.65);backdrop-filter:blur(4px);padding:12px 28px;border-radius:60px;border:1px solid rgba(200,70,50,0.5);}
+    .btn{background:#9e2a1f;border:none;padding:8px 24px;font-size:1.35rem;font-weight:500;font-family:'Segoe UI','Georgia',serif;color:#fff6ea;border-radius:40px;cursor:pointer;transition:all 0.2s;box-shadow:0 2px 6px rgba(0,0,0,0.2);min-width:70px;}
     .btn:hover{background:#b53b2a;transform:scale(0.96);}
-    .mode-toggle{
-      background:#2a1f1a;border:2px solid #9e2a1f;padding:8px 20px;
-      font-size:1rem;font-weight:bold;font-family:monospace;
-      letter-spacing:1px;min-width:180px;
-    }
+    .mode-toggle{background:#2a1f1a;border:2px solid #9e2a1f;padding:8px 20px;font-size:1rem;font-weight:bold;font-family:monospace;letter-spacing:1px;min-width:180px;}
     .mode-toggle:hover{background:#3a2a24;border-color:#c94f3a;}
-    .font-size-display{
-      background:#2e231e;padding:6px 20px;border-radius:48px;
-      color:#f7e9da;font-family:monospace;display:flex;align-items:center;gap:8px;
-    }
-    .line-height-control{
-      display:flex;align-items:center;gap:12px;background:#2e231e;
-      padding:6px 20px;border-radius:48px;color:#f7e9da;font-family:monospace;
-    }
+    .font-size-display{background:#2e231e;padding:6px 20px;border-radius:48px;color:#f7e9da;font-family:monospace;display:flex;align-items:center;gap:8px;}
+    .line-height-control{display:flex;align-items:center;gap:12px;background:#2e231e;padding:6px 20px;border-radius:48px;color:#f7e9da;font-family:monospace;}
     .line-height-control label{font-size:0.85rem;letter-spacing:1px;}
     .line-height-slider{width:140px;cursor:pointer;accent-color:#c94f3a;}
     .line-height-value{min-width:45px;text-align:center;font-weight:bold;}
-    .status-badge{
-      background:#2a201b;padding:6px 18px;border-radius:32px;
-      font-size:0.85rem;color:#e5cfb5;font-family:monospace;
-      display:inline-flex;align-items:center;gap:8px;
-    }
+    .status-badge{background:#2a201b;padding:6px 18px;border-radius:32px;font-size:0.85rem;color:#e5cfb5;font-family:monospace;display:inline-flex;align-items:center;gap:8px;}
     .led{width:12px;height:12px;background-color:#c94f3a;border-radius:50%;transition:all 0.2s;}
-    @media(max-width:750px){
-      .mode-toggle{min-width:140px;font-size:0.85rem;padding:6px 14px;}
-      .writing-wrapper{padding:32px 28px 40px 28px;}
-      .line-overlay{top:32px;left:28px;right:28px;bottom:40px;}
-      .line-height-slider{width:100px;}
-    }
-    .page::before{
-      content:"";position:absolute;top:0;left:0;width:100%;height:100%;
-      background:radial-gradient(circle at 20% 30%,rgba(210,180,140,0.08) 2%,transparent 2.5%);
-      background-size:24px 24px;pointer-events:none;z-index:0;border-radius:inherit;
-    }
+    @media(max-width:750px){.mode-toggle{min-width:140px;font-size:0.85rem;padding:6px 14px;}.writing-wrapper{padding:32px 28px 40px 28px;}.line-overlay{top:32px;left:28px;right:28px;bottom:40px;}.line-height-slider{width:100px;}}
+    .page::before{content:"";position:absolute;top:0;left:0;width:100%;height:100%;background:radial-gradient(circle at 20% 30%,rgba(210,180,140,0.08) 2%,transparent 2.5%);background-size:24px 24px;pointer-events:none;z-index:0;border-radius:inherit;}
   </style>
 </head>
 <body>
@@ -202,23 +124,29 @@
     return out;
   }
 
-  function groupLines(rects, baseLhPx) {
+  // ============================================================
+  // NUEVO groupLines: agrupa por proximidad de top, no por bottom
+  // ============================================================
+  function groupLines(rects, lineHeightPx) {
     if (!rects.length) return [];
     rects.sort((a, b) => a.top - b.top);
-    const SLOP = baseLhPx * 0.15;
+    const threshold = lineHeightPx * 0.8;  // umbral amplio pero basado en top
     const lines = [];
-    let gTop = rects[0].top, gBottom = rects[0].bottom;
+    let groupTop = rects[0].top;
+    let groupBottom = rects[0].bottom;
     for (let i = 1; i < rects.length; i++) {
       const r = rects[i];
-      if (r.top < gBottom + SLOP) {
-        gTop    = Math.min(gTop,    r.top);
-        gBottom = Math.max(gBottom, r.bottom);
+      if (r.top - groupTop <= threshold) {
+        // Misma línea lógica
+        groupTop = Math.min(groupTop, r.top);
+        groupBottom = Math.max(groupBottom, r.bottom);
       } else {
-        lines.push({ top: gTop, bottom: gBottom });
-        gTop = r.top; gBottom = r.bottom;
+        lines.push({ top: groupTop, bottom: groupBottom });
+        groupTop = r.top;
+        groupBottom = r.bottom;
       }
     }
-    lines.push({ top: gTop, bottom: gBottom });
+    lines.push({ top: groupTop, bottom: groupBottom });
     return lines;
   }
 
@@ -248,17 +176,21 @@
     return groupLines(rects, lhPx).map(g => ({ bottom: g.bottom }));
   }
 
-  // ----- MODO GUIADO FINAL CON TOLERANCIA Y FILTRO PRECISO -----
+  // ============================================================
+  // MODO GUIADO CORREGIDO: grilla fija + bases reales sin duplicados
+  // ============================================================
   function getFullRuledLines() {
     const lhPx = currentFontSize * currentLineHeightRatio;
     if (lhPx <= 0) return [];
 
+    // Obtener líneas reales
     const probe = buildProbe();
     const offsetTop = probe.getBoundingClientRect().top;
     const rects = collectRects(probe.firstChild, offsetTop);
     document.body.removeChild(probe);
     const realLines = rects.length ? groupLines(rects, lhPx) : [];
 
+    // Grilla uniforme fija desde el top (0) hasta scrollHeight + lhPx
     const scrollH = editor.scrollHeight;
     const gridLines = [];
     let y = 0;
@@ -267,21 +199,23 @@
       y += lhPx;
     }
 
+    // Bases reales (bottoms)
     const baseLines = realLines.map(L => L.bottom);
 
-    // Unir grilla y bases, eliminar duplicados con tolerancia de 2px
-    const tolerance = 2;
+    // --- Fusionar grilla y bases evitando duplicados cercanos (tolerancia 1px) ---
     const all = [...gridLines, ...baseLines];
     all.sort((a,b) => a - b);
-    const unique = [];
+    const merged = [];
     for (const v of all) {
-      if (unique.length === 0 || v - unique[unique.length-1] > tolerance) {
-        unique.push(v);
+      if (merged.length === 0 || v - merged[merged.length-1] > 1) {
+        merged.push(v);
       }
     }
 
-    // Filtrar líneas que caigan dentro de una línea real (con 0.5px de holgura)
-    const final = unique.filter(y => {
+    // --- Filtrar: eliminar cualquier línea que caiga DENTRO de una línea real ---
+    // (es decir, y > L.top+0.5 && y < L.bottom-0.5)
+    // Además, si una línea está exactamente en L.bottom (base real) se conserva.
+    const final = merged.filter(y => {
       for (const L of realLines) {
         if (y > L.top + 0.5 && y < L.bottom - 0.5) return false;
       }
@@ -307,7 +241,7 @@
     for (const item of lineData) {
       const rule = document.createElement('div');
       rule.className = 'rule-line';
-      rule.style.top = (item.bottom + deltaY - 0.5) + 'px'; // ajuste fino
+      rule.style.top = (item.bottom + deltaY - 0.5) + 'px';
       frag.appendChild(rule);
     }
     linesContainer.appendChild(frag);
