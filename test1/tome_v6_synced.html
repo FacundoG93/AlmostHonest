@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
-  <title>Tome of Whispers | Final</title>
+  <title>Tome of Whispers | Guided Mode Fixed</title>
   <style>
     *{margin:0;padding:0;box-sizing:border-box;}
     body{background:#1a1410;display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100vh;padding:32px 20px;font-family:'Georgia','Times New Roman','Palatino',serif;}
@@ -122,8 +122,7 @@
     return out;
   }
 
-  // groupLines ajustado: se resta un pequeño offset al bottom para acercar la línea a la letra
-  function groupLines(rects, baseLhPx, fontSize) {
+  function groupLines(rects, baseLhPx) {
     if (!rects.length) return [];
     rects.sort((a, b) => a.top - b.top);
     const SLOP = baseLhPx * 0.15;
@@ -135,12 +134,11 @@
         gTop    = Math.min(gTop,    r.top);
         gBottom = Math.max(gBottom, r.bottom);
       } else {
-        // Restamos solo un 3% del font-size (más sutil) para mantener la letra casi pegada
-        lines.push({ top: gTop, bottom: gBottom - fontSize * 0.03 });
+        lines.push({ top: gTop, bottom: gBottom });
         gTop = r.top; gBottom = r.bottom;
       }
     }
-    lines.push({ top: gTop, bottom: gBottom - fontSize * 0.03 });
+    lines.push({ top: gTop, bottom: gBottom });
     return lines;
   }
 
@@ -166,10 +164,13 @@
     const rects = collectRects(probe.firstChild, offsetTop);
     document.body.removeChild(probe);
     if (!rects.length) return [];
-    const lhPx = currentFontSize * currentLineHeightRatio;
-    return groupLines(rects, lhPx, currentFontSize).map(g => ({ bottom: g.bottom }));
+    return groupLines(rects, currentFontSize * currentLineHeightRatio)
+      .map(g => ({ bottom: g.bottom }));
   }
 
+  // ============================================================
+  // FULL-RULED CORREGIDO: relleno hacia adelante entre líneas reales
+  // ============================================================
   function getFullRuledLines() {
     const lhPx = currentFontSize * currentLineHeightRatio;
     if (lhPx <= 0) return [];
@@ -179,7 +180,7 @@
     const rects = collectRects(probe.firstChild, offsetTop);
     document.body.removeChild(probe);
 
-    const realLines = rects.length ? groupLines(rects, lhPx, currentFontSize) : [];
+    const realLines = rects.length ? groupLines(rects, lhPx) : [];
     const scrollH   = editor.scrollHeight;
     const result    = new Set();
 
@@ -200,11 +201,14 @@
       return Array.from(result).sort((a,b)=>a-b).map(b=>({bottom:b}));
     }
 
+    // 1. Bases reales
     for (const L of realLines) addY(L.bottom);
 
+    // 2. Antes de la primera línea: hacia arriba
     let y = realLines[0].bottom - lhPx;
     while (y > 0) { addY(y); y -= lhPx; }
 
+    // 3. Entre líneas reales: rellenar desde la base superior hacia la inferior
     for (let i = 0; i < realLines.length - 1; i++) {
       const start = realLines[i].bottom;
       const end   = realLines[i+1].bottom;
@@ -215,6 +219,7 @@
       }
     }
 
+    // 4. Después de la última línea: hacia abajo
     y = realLines[realLines.length-1].bottom + lhPx;
     while (y <= scrollH + lhPx) { addY(y); y += lhPx; }
 
@@ -232,8 +237,7 @@
     for (const item of lineData) {
       const rule = document.createElement('div');
       rule.className = 'rule-line';
-      // Offset mínimo para que la línea quede justo debajo, casi tocando
-      rule.style.top = (item.bottom + deltaY + 0.1) + 'px';
+      rule.style.top = (item.bottom + deltaY - 0.5) + 'px';
       frag.appendChild(rule);
     }
     linesContainer.appendChild(frag);
