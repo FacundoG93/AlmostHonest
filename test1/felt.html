@@ -57,7 +57,8 @@
       flex: 1;
       margin: 0;
       padding: 0;
-      transition: font-size 0.1s ease;
+      transition: font-size 0.08s linear, line-height 0.08s linear;
+      will-change: font-size, line-height;
     }
 
     .line-overlay {
@@ -77,6 +78,7 @@
       width: 100%;
       border-bottom: 1px solid rgba(170, 65, 50, 0.65);
       pointer-events: none;
+      transition: top 0.05s linear;
     }
 
     .controls {
@@ -135,6 +137,38 @@
       border-radius: 48px;
       color: #f7e9da;
       font-family: monospace;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .line-height-control {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      background: #2e231e;
+      padding: 6px 20px;
+      border-radius: 48px;
+      color: #f7e9da;
+      font-family: monospace;
+    }
+    .line-height-control label {
+      font-size: 0.85rem;
+      letter-spacing: 1px;
+    }
+    .line-height-slider {
+      width: 140px;
+      cursor: pointer;
+      background: #9e2a1f;
+      height: 4px;
+      border-radius: 5px;
+      accent-color: #c94f3a;
+      transition: none;
+    }
+    .line-height-value {
+      min-width: 45px;
+      text-align: center;
+      font-weight: bold;
     }
 
     .status-badge {
@@ -161,6 +195,8 @@
       .mode-toggle { min-width: 140px; font-size: 0.85rem; padding: 6px 14px; }
       .writing-wrapper { padding: 32px 28px 40px 28px; }
       .line-overlay { top: 32px; left: 28px; right: 28px; bottom: 40px; }
+      .line-height-slider { width: 100px; }
+      .line-height-control { padding: 4px 12px; }
     }
 
     .page::before {
@@ -194,9 +230,16 @@
 <div class="controls">
   <button class="btn" id="decrementFontBtn">A−</button>
   <button class="btn" id="incrementFontBtn">A+</button>
-  <span class="font-size-display"><span id="fontSizeValue">21</span>px · <span id="lineHeightPreview">1.55</span>lh</span>
+  <span class="font-size-display"><span id="fontSizeValue">21</span>px</span>
+  
+  <div class="line-height-control">
+    <label>📏 Espaciado</label>
+    <input type="range" id="lineHeightSlider" class="line-height-slider" min="1.0" max="2.5" step="0.01" value="1.55">
+    <span id="lineHeightPreview" class="line-height-value">1.55</span>
+  </div>
+
   <button class="btn mode-toggle" id="writingModeToggle">✧ TEXT-GUIDED ✧</button>
-  <div class="status-badge"><span class="led" id="ledIndicator"></span> <span id="ruleStatus">TEXT-GUIDED · LINES ONLY WHERE TEXT LIVES (NO HISTORY)</span></div>
+  <div class="status-badge"><span class="led" id="ledIndicator"></span> <span id="ruleStatus">TEXT-GUIDED · LINES ONLY WHERE TEXT LIVES</span></div>
 </div>
 
 <script>
@@ -204,6 +247,7 @@
     const linesContainer = document.getElementById('dynamicLinesOverlay');
     const fontSizeSpan = document.getElementById('fontSizeValue');
     const lineHeightPreviewSpan = document.getElementById('lineHeightPreview');
+    const lineHeightSlider = document.getElementById('lineHeightSlider');
     const modeToggleBtn = document.getElementById('writingModeToggle');
     const ruleStatusSpan = document.getElementById('ruleStatus');
     const ledIndicator = document.getElementById('ledIndicator');
@@ -215,9 +259,10 @@
     let currentFontSize = 21;
     let currentLineHeightRatio = 1.55;
     let updateTimer = null;
+    let rafId = null;
     
     // ------------------------------------------------------------------
-    // Helper: carácter visible (no espacio, no invisible)
+    // Helper: carácter visible
     // ------------------------------------------------------------------
     function isVisibleCharacter(ch) {
       if (!ch || ch.length === 0) return false;
@@ -228,8 +273,109 @@
     }
     
     // ------------------------------------------------------------------
-    // MODO GUIADO COMPLETO: líneas a lo largo de TODO el editor
-    // (incluyendo texto y vacío, con una línea extra al final)
+    // Obtener la línea base teórica (para modo guiado sin texto)
+    // IMPORTANTE: Se clona el editor y se añade una 'M' para que herede
+    // exactamente el mismo line-height, padding, etc.
+    // ------------------------------------------------------------------
+    let cachedBaselineOffset = null;
+    function getTheoreticalBaselineOffset() {
+      if (cachedBaselineOffset !== null) return cachedBaselineOffset;
+      
+      // Clonamos el editor para mantener el mismo contexto de estilo
+      const probeDiv = document.createElement('div');
+      const editorStyle = window.getComputedStyle(editor);
+      probeDiv.style.position = 'absolute';
+      probeDiv.style.visibility = 'hidden';
+      probeDiv.style.top = '-9999px';
+      probeDiv.style.left = '-9999px';
+      probeDiv.style.width = editorStyle.width;
+      probeDiv.style.fontSize = editorStyle.fontSize;
+      probeDiv.style.fontFamily = editorStyle.fontFamily;
+      probeDiv.style.lineHeight = editorStyle.lineHeight;
+      probeDiv.style.whiteSpace = 'pre-wrap';
+      probeDiv.style.padding = editorStyle.padding;
+      probeDiv.style.margin = editorStyle.margin;
+      probeDiv.style.boxSizing = editorStyle.boxSizing;
+      
+      const contentClone = editor.cloneNode(true);
+      contentClone.removeAttribute('contenteditable');
+      // Limpiamos el contenido del clon para tener solo la 'M'
+      contentClone.innerHTML = '<span style="display: inline;">M</span>';
+      probeDiv.appendChild(contentClone);
+      document.body.appendChild(probeDiv);
+      
+      const offsetTop = probeDiv.getBoundingClientRect().top;
+      let baseline = null;
+      try {
+        const walker = document.createTreeWalker(probeDiv, NodeFilter.SHOW_TEXT, null);
+        while (walker.nextNode()) {
+          const node = walker.currentNode;
+          if (node.textContent === 'M') {
+            const range = document.createRange();
+            range.selectNode(node);
+            const rect = range.getBoundingClientRect();
+            if (rect && rect.height > 0) {
+              baseline = rect.bottom - offsetTop;
+              break;
+            }
+          }
+        }
+      } catch(e) {}
+      
+      document.body.removeChild(probeDiv);
+      cachedBaselineOffset = baseline;
+      return baseline;
+    }
+    
+    // ------------------------------------------------------------------
+    // Obtener la posición Y de la línea base de la primera línea de texto real
+    // Si no hay texto visible, devuelve null
+    // ------------------------------------------------------------------
+    function getFirstRealBaseline() {
+      const tempDiv = document.createElement('div');
+      const style = window.getComputedStyle(editor);
+      tempDiv.style.position = 'absolute';
+      tempDiv.style.visibility = 'hidden';
+      tempDiv.style.top = '-9999px';
+      tempDiv.style.width = style.width;
+      tempDiv.style.fontSize = style.fontSize;
+      tempDiv.style.fontFamily = style.fontFamily;
+      tempDiv.style.lineHeight = style.lineHeight;
+      tempDiv.style.whiteSpace = 'pre-wrap';
+      tempDiv.style.padding = style.padding;
+      const clone = editor.cloneNode(true);
+      clone.removeAttribute('contenteditable');
+      tempDiv.appendChild(clone);
+      document.body.appendChild(tempDiv);
+      
+      let baseline = null;
+      try {
+        const walker = document.createTreeWalker(tempDiv, NodeFilter.SHOW_TEXT, null);
+        while (walker.nextNode()) {
+          const node = walker.currentNode;
+          const text = node.textContent || '';
+          for (let i = 0; i < text.length; i++) {
+            if (isVisibleCharacter(text[i])) {
+              const range = document.createRange();
+              range.setStart(node, i);
+              range.setEnd(node, i + 1);
+              const rect = range.getBoundingClientRect();
+              if (rect && rect.height > 0) {
+                const offsetTop = tempDiv.getBoundingClientRect().top;
+                baseline = rect.bottom - offsetTop;
+                break;
+              }
+            }
+          }
+          if (baseline !== null) break;
+        }
+      } catch(e) {}
+      document.body.removeChild(tempDiv);
+      return baseline;
+    }
+    
+    // ------------------------------------------------------------------
+    // MODO GUIADO COMPLETO: líneas espaciadas uniformemente, alineadas a la baseline real
     // ------------------------------------------------------------------
     function getFullRuledLines() {
       if (!editor) return [];
@@ -237,19 +383,43 @@
       const lineHeightPx = currentFontSize * currentLineHeightRatio;
       if (lineHeightPx <= 0) return [];
       
-      const positions = [];
-      let currentBottom = lineHeightPx;
-      const limit = scrollHeight + lineHeightPx;
-      while (currentBottom <= limit) {
-        positions.push(currentBottom);
-        currentBottom += lineHeightPx;
+      // Intentar obtener baseline real de la primera línea de texto
+      let firstBaseline = getFirstRealBaseline();
+      if (firstBaseline === null) {
+        // No hay texto: usar la baseline teórica (medida con el mismo estilo)
+        firstBaseline = getTheoreticalBaselineOffset();
       }
-      return positions.map(bottom => ({ bottom }));
+      // Si aún es null (por algún error), usamos un valor por defecto
+      if (firstBaseline === null) {
+        firstBaseline = lineHeightPx * 0.8;
+      }
+      
+      const positions = new Set();
+      positions.add(firstBaseline);
+      
+      // Líneas hacia abajo hasta scrollHeight + lineHeightPx
+      let current = firstBaseline + lineHeightPx;
+      while (current <= scrollHeight + lineHeightPx) {
+        positions.add(current);
+        current += lineHeightPx;
+      }
+      
+      // Líneas hacia arriba para cubrir el espacio superior (desde firstBaseline hacia 0)
+      current = firstBaseline - lineHeightPx;
+      while (current > 0) {
+        positions.add(current);
+        current -= lineHeightPx;
+      }
+      
+      // Convertir a array ordenado y filtrar valores negativos o cero
+      const result = Array.from(positions)
+        .filter(pos => pos > 0)
+        .sort((a, b) => a - b);
+      return result.map(bottom => ({ bottom }));
     }
     
     // ------------------------------------------------------------------
-    // MODO TEXTO GUIADO: SOLO líneas que CONTIENEN texto visible AHORA
-    // SIN HISTORIAL, SIN LÍNEAS VACÍAS NUNCA
+    // MODO TEXTO GUIADO: líneas solo donde hay texto
     // ------------------------------------------------------------------
     function getTextGuidedLines() {
       if (!editor) return [];
@@ -276,13 +446,12 @@
       document.body.appendChild(probeDiv);
       
       const offsetTop = probeDiv.getBoundingClientRect().top;
-      const linesMap = new Map(); // clave: posición bottom, valor: objeto con bottom
+      const linesMap = new Map();
       
       try {
         const cloneRoot = probeDiv.firstChild;
         if (!cloneRoot) throw new Error('no content');
         
-        // Recolectar posiciones de todos los caracteres visibles
         const charPositions = [];
         const walker = document.createTreeWalker(cloneRoot, NodeFilter.SHOW_TEXT, null);
         while (walker.nextNode()) {
@@ -296,9 +465,11 @@
                 range.setEnd(node, i + 1);
                 const rect = range.getBoundingClientRect();
                 if (rect && rect.height > 0) {
+                  const baseline = rect.bottom - offsetTop;
                   charPositions.push({
                     top: rect.top - offsetTop,
-                    bottom: rect.bottom - offsetTop
+                    bottom: rect.bottom - offsetTop,
+                    baseline: baseline
                   });
                 }
               } catch(e) {}
@@ -311,35 +482,30 @@
           return [];
         }
         
-        // Agrupar por líneas según proximidad vertical
         charPositions.sort((a, b) => a.top - b.top);
         const lineHeightPx = currentFontSize * currentLineHeightRatio;
         const threshold = lineHeightPx * 0.6;
-        let currentLineBottom = charPositions[0].bottom;
+        let currentLineBaseline = charPositions[0].baseline;
         let currentLineTop = charPositions[0].top;
         
         for (let i = 1; i < charPositions.length; i++) {
           if (Math.abs(charPositions[i].top - currentLineTop) > threshold) {
-            // Guardar la línea actual
-            const bottomKey = Math.round(currentLineBottom);
-            if (!linesMap.has(bottomKey)) {
-              linesMap.set(bottomKey, { bottom: currentLineBottom });
+            const key = Math.round(currentLineBaseline);
+            if (!linesMap.has(key)) {
+              linesMap.set(key, { bottom: currentLineBaseline });
             }
-            // Iniciar nueva línea
             currentLineTop = charPositions[i].top;
-            currentLineBottom = charPositions[i].bottom;
+            currentLineBaseline = charPositions[i].baseline;
           } else {
-            currentLineBottom = Math.max(currentLineBottom, charPositions[i].bottom);
+            currentLineBaseline = Math.max(currentLineBaseline, charPositions[i].baseline);
             currentLineTop = Math.min(currentLineTop, charPositions[i].top);
           }
         }
-        // Guardar la última línea
-        const bottomKey = Math.round(currentLineBottom);
-        if (!linesMap.has(bottomKey)) {
-          linesMap.set(bottomKey, { bottom: currentLineBottom });
+        const lastKey = Math.round(currentLineBaseline);
+        if (!linesMap.has(lastKey)) {
+          linesMap.set(lastKey, { bottom: currentLineBaseline });
         }
         
-        // También considerar elementos no textuales (imágenes, botones, etc.)
         const atomic = cloneRoot.querySelectorAll('img, svg, canvas, iframe, video, object, input, button, select, textarea, figure');
         for (let el of atomic) {
           let hasContent = false;
@@ -356,10 +522,10 @@
               range.selectNode(el);
               const rect = range.getBoundingClientRect();
               if (rect.height > 5) {
-                const bottom = rect.bottom - offsetTop;
-                const key = Math.round(bottom);
+                const baseline = rect.bottom - offsetTop;
+                const key = Math.round(baseline);
                 if (!linesMap.has(key)) {
-                  linesMap.set(key, { bottom });
+                  linesMap.set(key, { bottom: baseline });
                 }
               }
             } catch(e) {}
@@ -373,8 +539,6 @@
       
       let positions = Array.from(linesMap.values()).map(v => v.bottom);
       positions.sort((a, b) => a - b);
-      
-      // Deduplicar por si hay posiciones muy cercanas
       const minDist = (currentFontSize * currentLineHeightRatio) * 0.4;
       const unique = [];
       for (let pos of positions) {
@@ -386,7 +550,7 @@
     }
     
     // ------------------------------------------------------------------
-    // RENDER: según el modo actual
+    // RENDER suave
     // ------------------------------------------------------------------
     function renderLines() {
       if (!linesContainer || !editor) return;
@@ -409,21 +573,36 @@
       const overlayRect = linesContainer.getBoundingClientRect();
       const deltaY = editorRect.top - overlayRect.top;
       
+      const fragment = document.createDocumentFragment();
       for (let item of lineData) {
         const rule = document.createElement('div');
         rule.className = 'rule-line';
         rule.style.top = (item.bottom + deltaY - 1.5) + 'px';
         rule.style.left = '0px';
         rule.style.width = '100%';
-        linesContainer.appendChild(rule);
+        fragment.appendChild(rule);
       }
+      linesContainer.appendChild(fragment);
     }
     
     function scheduleRender() {
       if (updateTimer) clearTimeout(updateTimer);
+      if (rafId) cancelAnimationFrame(rafId);
       updateTimer = setTimeout(() => {
-        renderLines();
-      }, 16);
+        rafId = requestAnimationFrame(() => {
+          renderLines();
+          rafId = null;
+        });
+      }, 12);
+    }
+    
+    function setLineHeight(value) {
+      currentLineHeightRatio = Math.min(2.5, Math.max(1.0, parseFloat(value)));
+      editor.style.lineHeight = currentLineHeightRatio;
+      lineHeightSlider.value = currentLineHeightRatio;
+      lineHeightPreviewSpan.textContent = currentLineHeightRatio.toFixed(2);
+      cachedBaselineOffset = null; // invalidar caché porque cambia el line-height
+      scheduleRender();
     }
     
     function updateModeUI() {
@@ -434,12 +613,12 @@
         modeToggleBtn.style.borderColor = "#b5664a";
       } else if (currentMode === 1) {
         modeToggleBtn.innerHTML = "✧ GUIDED MODE ✧";
-        ruleStatusSpan.innerText = "GUIDED · FULL RULED (lines everywhere, plus extra below)";
+        ruleStatusSpan.innerText = "GUIDED · FULL RULED (lines everywhere)";
         ledIndicator.style.backgroundColor = "#efb87e";
         modeToggleBtn.style.borderColor = "#9e2a1f";
       } else {
         modeToggleBtn.innerHTML = "✧ TEXT-GUIDED ✧";
-        ruleStatusSpan.innerText = "TEXT-GUIDED · RULED ONLY WHERE TEXT LIVES (NO HISTORY)";
+        ruleStatusSpan.innerText = "TEXT-GUIDED · RULED ONLY WHERE TEXT LIVES";
         ledIndicator.style.backgroundColor = "#b8865a";
         modeToggleBtn.style.borderColor = "#bc6f4a";
       }
@@ -455,9 +634,8 @@
       newPx = Math.min(38, Math.max(12, newPx));
       currentFontSize = newPx;
       editor.style.fontSize = currentFontSize + 'px';
-      editor.style.lineHeight = currentLineHeightRatio;
       fontSizeSpan.textContent = currentFontSize;
-      lineHeightPreviewSpan.textContent = currentLineHeightRatio.toFixed(2);
+      cachedBaselineOffset = null; // invalidar caché porque cambia el tamaño
       scheduleRender();
     }
     
@@ -467,6 +645,7 @@
       editor.style.fontSize = currentFontSize + 'px';
       editor.style.lineHeight = currentLineHeightRatio;
       fontSizeSpan.textContent = currentFontSize;
+      lineHeightSlider.value = currentLineHeightRatio;
       lineHeightPreviewSpan.textContent = currentLineHeightRatio.toFixed(2);
       currentMode = 2;
       updateModeUI();
@@ -474,11 +653,9 @@
       document.getElementById('decrementFontBtn').addEventListener('click', () => setFontSize(currentFontSize - 2));
       document.getElementById('incrementFontBtn').addEventListener('click', () => setFontSize(currentFontSize + 2));
       modeToggleBtn.addEventListener('click', cycleMode);
+      lineHeightSlider.addEventListener('input', (e) => setLineHeight(e.target.value));
       
-      const handleInput = () => {
-        scheduleRender();
-      };
-      
+      const handleInput = () => scheduleRender();
       editor.addEventListener('input', handleInput);
       editor.addEventListener('keyup', handleInput);
       editor.addEventListener('paste', () => setTimeout(handleInput, 20));
